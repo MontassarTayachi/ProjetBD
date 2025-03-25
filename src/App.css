@@ -1,0 +1,22 @@
+.Dashboard{
+    display: flex;
+    flex-direction: row;
+    align-items: first baseline;
+    .SidBar{
+        width: 16%;
+        height: 100vh;
+        background-color: #1975d1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .Link {
+            padding: 1em;
+            &:hover{
+                background-color: #0f4c75;
+            }
+            
+        }
+    }
+}
+
