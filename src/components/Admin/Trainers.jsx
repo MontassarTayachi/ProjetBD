@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Nav from './utils/Nav';
+import ParticipantList from './utils/ParticipantList';
+import TrainersList from './utils/TrainersList';
 
 const Trainers = () => {
     const [trainer, setTrainer] = useState({
@@ -32,6 +34,7 @@ const Trainers = () => {
     return (
         <div>
            <Nav name="List of trainers" namefunction="Add trainers " />
+           <div className='qq989498'><TrainersList/></div>
         </div>
     );
 };

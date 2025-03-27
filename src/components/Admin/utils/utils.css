@@ -178,3 +178,32 @@
         }
     }
 }
+/*/////////////////////////////////// ParticipantList*/
+.logo8455565654645{
+    border-radius: 4px;
+    padding: 0.5em;
+    font-size: 2em;
+    width: 2.2em;
+    aspect-ratio: 1/1; 
+    border: none;
+    cursor: pointer;
+}
+.red{
+    color:  rgb(223, 64, 64);
+    background-color:transparent;
+    &:hover{
+        scale: 1.01;
+        transition: all 0.5s;
+    }
+}
+.green{
+    color:  rgb(60, 216, 60);;
+    background-color:transparent;
+    &:hover{
+        scale: 1.01;
+        transition: all 0.5s;
+    }
+}
+.MuiButtonBase-root{
+    color: darkgray !important;
+}
