@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-
+import { NavLink } from 'react-router-dom';
+import { FaRegUser,FaUserGraduate } from "react-icons/fa6";
+import { MdModelTraining } from "react-icons/md";
 const SidBar = () => {
 
         return (
             <div className="SidBar">
                 <h2>SidBar</h2>
-                <Link className='Link' to="add-training">add training</Link>
-                <Link  className='Link' to="add-users">add-users</Link>
-                <Link className='Link' to="add-trainers">add-trainers</Link>
+                <NavLink activeClassName='active'  className='Link' to="Participant"><FaUserGraduate  className='logo'/> Participant</NavLink>
+                <NavLink activeClassName='active' className='Link'  to="training">< FaRegUser className='logo'/> Training</NavLink>
+                <NavLink  activeClassName='active' className='Link' to="trainers"><MdModelTraining  className='logo'/> Trainers</NavLink>
             </div>
         );
 }

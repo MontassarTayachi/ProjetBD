@@ -1,18 +1,18 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import AddTrainers from '../components/Admin/AddTrainers';
-import AddTraining from '../components/Admin/AddTraining';
-import AddUser from '../components/Admin/AddUser';
+import Trainers from '../components/Admin/Trainers';
+import Training from '../components/Admin/Training';
+import Participant from '../components/Admin/Participant';
 import Dashbord from '../components/Admin/Dashbord';
 
 const AdminRoutes = () => {
     return (
         <Routes>
             <Route path="/admin" element={<Dashbord />}>
-                <Route index element={<AddTrainers />} />
-                <Route path="add-trainers" element={<AddTrainers />} />
-                <Route path="add-training" element={<AddTraining />} />
-                <Route path="add-users" element={<AddUser />} />
+                <Route index element={<Trainers />} />
+                <Route path="trainers" element={<Trainers />} />
+                <Route path="training" element={<Training />} />
+                <Route path="Participant" element={<Participant />} />
             </Route>
         </Routes>
     );
