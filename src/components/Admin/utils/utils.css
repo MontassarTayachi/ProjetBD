@@ -92,7 +92,9 @@
     left: 0;
     width: 100%;
     height: 100vh;
+    z-index: 1000;
     display: flex;
+    overflow: hidden;
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.5);
     .AddTraining{
@@ -206,4 +208,47 @@
 }
 .MuiButtonBase-root{
     color: darkgray !important;
+}
+/*/////////////////////////////////// CardItems /////////////*/
+.CardItems878754{
+    width: 100%;
+    margin: 0 0.5em;
+   .header98498{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em;
+    h1{
+        font-size: 1em;
+        font-weight: 700;
+        color: #495057;
+    }
+    .btn{
+        background-color: transparent;
+        color: #201f1f;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        width: 2em;
+        height: 2em;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+
+        &:hover{
+            box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.3);
+            transition: all .3s;
+            .logo{
+                font-size: 2em;
+            }
+        }
+        .logo{
+            font-size: 1.5em;
+        }
+    }
+   }
 }

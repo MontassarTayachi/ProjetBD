@@ -1,41 +1,19 @@
 import React, { useState } from 'react';
 import Nav from './utils/Nav';
-import ParticipantList from './utils/ParticipantList';
 import TrainersList from './utils/TrainersList';
+import AddTrainer from './utils/AddTrainer';
 
 const Trainers = () => {
-    const [trainer, setTrainer] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        expertise: '',
-    });
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setTrainer((prevTrainer) => ({
-            ...prevTrainer,
-            [name]: value,
-        }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log('Trainer added:', trainer);
-        // Add logic to save trainer data to the backend or state management
-        setTrainer({
-            name: '',
-            email: '',
-            phone: '',
-            expertise: '',
-        });
-    };
-
+    const [open, setOpen] = useState(false);
+    
     return (
+        <>
         <div>
-           <Nav name="List of trainers" namefunction="Add trainers " />
+           <Nav name="List of trainers" fun={()=>{setOpen(true)}} namefunction="Add trainers " />
            <div className='qq989498'><TrainersList/></div>
         </div>
+        {open&&<AddTrainer fun={()=>{setOpen(false)}}/>}
+        </>
     );
 };
 
