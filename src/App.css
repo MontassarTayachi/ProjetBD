@@ -16,7 +16,7 @@
         background-color: whitesmoke;
         margin: 0;
         @media screen and (max-width: 768px) {
-            width: 100%;
+            width: 100% !important;
             height: auto;    
             
         }
@@ -42,6 +42,20 @@
             }
         }
     }
+    .a778777878{
+        display: none;
+        @media screen and (max-width: 768px) {
+            display: block;
+          position: fixed;
+          z-index: 100;
+          top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5); 
+            
+        }
+    }
     .SidBar{
         width: 16%;
         height: 100vh;
@@ -51,8 +65,16 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        @media screen and (max-width: 768px) {
+            width: 70%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            height: 100vh;    
+        }
         img{
-            width: 100%;
+            width: 90%;
             margin-top: 0.5em;
             margin-bottom:1em;
             border-bottom: 1px solid rgba(0, 0, 0, 0.151);
@@ -61,6 +83,7 @@
             color: black;
             text-decoration: none;
             width: 90%;
+            z-index: 1000;
             margin-top: 0.1em;
             padding: 0.7em 1em;
             &:hover{

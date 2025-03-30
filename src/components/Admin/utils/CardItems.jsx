@@ -1,15 +1,22 @@
 import { Alert, Box, Snackbar } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
-import { CiEdit } from 'react-icons/ci';
+import { MdOutlineEdit } from "react-icons/md";
 import { IoIosAdd } from "react-icons/io";
 import { MdDelete } from 'react-icons/md';
 import AddCardItems from './AddCardItems';
 import {api} from '../../../config'
+import DeleteItems from './DeleteItems';
  const CardItems = ({them,data,libelle,ap,update}) => {
   const [open, setOpen] = React.useState(false);
   const[opensnackbar,setOpensnackbar]=React.useState(false)
   const[snackbarmessage,setSnackbarmessage]=React.useState('')
+  const [controleData,setControleData] = React.useState({
+    id: null,
+    message: '',
+    open: false,
+    error: false,
+    });
   const handchange = () => {
     setOpen(!open);
   } 
@@ -33,8 +40,17 @@ import {api} from '../../../config'
       }
       openSnackbar(`${them} deleted successfully`);
       update(prev => prev + 1);
+      setControleData({
+        ...controleData,
+        open: false,
+      });
     } catch (error) {
-      console.error('Error deleting item:', error);
+      openSnackbar(`Error deleting ${them}`);
+      setControleData({
+        ...controleData,
+        error: true,
+        message: `Error deleting ${them}`
+      });
     }
   };
  
@@ -45,17 +61,22 @@ import {api} from '../../../config'
         field: 'actions',
         headerName: 'Actions',
         width: 150,
+        editable: false,
         renderCell: (params) => (
           <div>
             <button
             className='logo8455565654645 green'
-              style={{ marginRight: 8 }}
-
             >
-             <CiEdit/>
+             <MdOutlineEdit/>
             </button>
             <button
-             onClick={(event) => handelDelete(params.row.id, event)}
+             onClick={() => {
+              setControleData({
+                ...controleData,
+                id: params.row.id,
+                open: true,
+              });
+            }}
             className='logo8455565654645 red' ><MdDelete/></button>
           </div>
         ),
@@ -64,13 +85,14 @@ import {api} from '../../../config'
    
     return (
       <>
+      {controleData.open &&<DeleteItems fun={handelDelete} onClose={() => setControleData({ ...controleData, open: false })} data={controleData} />}
         <div className='CardItems878754'>
           <div className='header98498'>
           <h1>List of {them}</h1>
          <div className='btn' onClick={handchange}> <IoIosAdd className='logo'  /></div>
         </div>
        {data.length>0&&
-        <Box sx={{ height: 400}}>
+        <Box sx={{ height: 400,maxWidth: '100%', width: '100%' }}>
           <DataGrid
             rows={data}
             columns={columns}

@@ -11,6 +11,7 @@ const Home = () => {
     return (
         <>
        <div className='Home984545'>
+       {toggel&&<div className='a778777878' onClick={handleToggle} ></div>}
        {toggel&&<SidBar></SidBar>}
        <div className='main84949894'
        style={

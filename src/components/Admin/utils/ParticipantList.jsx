@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import { DataGrid,GridToolbar } from '@mui/x-data-grid';
-import { CiEdit } from "react-icons/ci";
+import { MdOutlineEdit } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
 
 export default function ParticipantList() {
@@ -44,9 +44,8 @@ export default function ParticipantList() {
           <button
           className='logo8455565654645 green'
             onClick={() => handleEdit(params.row)}
-            style={{ marginRight: 8 }}
           >
-           <CiEdit/>
+           <MdOutlineEdit/>
           </button>
           <button className='logo8455565654645 red' onClick={() => handleDelete(params.row)}><MdDelete/></button>
         </div>
