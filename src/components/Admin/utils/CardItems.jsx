@@ -92,14 +92,14 @@ import DeleteItems from './DeleteItems';
          <div className='btn' onClick={handchange}> <IoIosAdd className='logo'  /></div>
         </div>
        {data.length>0&&
-        <Box sx={{ height: 400,maxWidth: '100%', width: '100%' }}>
+        <Box sx={{ height: 400, width: '100%' }}>
           <DataGrid
             rows={data}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
-            checkboxSelection
-            disableSelectionOnClick
+            disableSelectionOnClick={true}
+            components={{ Toolbar: GridToolbar }}
             initialState={{
               pagination: {
                 paginationModel: {
@@ -108,7 +108,7 @@ import DeleteItems from './DeleteItems';
               },
             }}
             pageSizeOptions={[5]}
-            components={{ Toolbar: GridToolbar }}
+
           />
         </Box>}
     
