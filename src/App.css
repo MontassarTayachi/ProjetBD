@@ -363,3 +363,35 @@
     font-size: 0.8rem;
     margin: 0.5rem 0;
 }
+.DashboardDefaultssq789889{
+    overflow-y: auto;
+    .DashbordHader{
+        display: flex;
+        justify-content: space-around;
+
+        padding-bottom: 1em;
+        flex: 1;
+        @media screen and (max-width: 768px) {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+           
+        }
+        .sisjojiq{
+          width: 70%;
+          @media screen and (max-width: 768px) {
+            width: 100%;
+            margin-left: 0;
+            
+          }
+        }
+        .sisjojiq525{
+            width: 30%;
+            margin-left: 1em;
+            @media screen and (max-width: 768px) {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    }
+}

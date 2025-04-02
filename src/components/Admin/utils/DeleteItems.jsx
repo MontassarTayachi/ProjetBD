@@ -4,7 +4,7 @@ const DeleteItems = ({ fun, onClose,data }) => {
    
 
     return (
-        <div className='delete-items-backdrop' onClick={onClose}>
+        <div className='delete989989-items-backdrop' onClick={onClose}>
         <div className='delete-items9898498'>
             <div className='delete-items-header'>
                 <h2>Are you sure you want to delete this item?</h2>
