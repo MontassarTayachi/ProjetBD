@@ -8,7 +8,7 @@ import AdminLayout from './pages/dashboard/AdminLayout';
 import Utilisateurs from './pages/utilisateurs/Utilisateurs';
 import ManagerLayout from './pages/dashboard/MangerLayout';
 import Personnel from "./pages/personnel/Personnel";
-import Formations from './pages/formations/formations';
+import Formations from './pages/formations/Formations';
 import Referentiels from './pages/Referentiels/Referentiels';
 import UserLayout from './pages/dashboard/UserLayout';
 

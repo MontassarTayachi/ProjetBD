@@ -50,7 +50,7 @@ export default function Sidebar({ menuItems }) {
       {/* Footer */}
       <div className="mt-auto pt-6 border-t border-gray-200">
         <div className="text-[#7a6699] text-sm">
-          <p>© 2023 SavoirX</p>
+          <p>© 2025 SavoirX</p>
           <p className="text-xs opacity-70">v2.4.1</p>
         </div>
       </div>

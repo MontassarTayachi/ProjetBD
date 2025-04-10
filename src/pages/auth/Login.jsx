@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import image from '../../assets/calender.png' ;
 import logo from '../../assets/logo.png' ;
+import Card from '../../components/Card';
 
 const Login = () => {
     const [formData, setFormData] = useState({ login: '', password: '' });
@@ -106,24 +107,7 @@ const Login = () => {
         </div>
 
         {/* Remember me & forgot password */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
-              Remember me
-            </label>
-          </div>
-          <div className="text-sm">
-            <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Forgot password?
-            </a>
-          </div>
-        </div>
+        
 
         {/* Login button */}
         <button
@@ -136,15 +120,13 @@ const Login = () => {
 
       {/* Sign up link */}
       <div className="mt-6 text-center">
-        <p className="text-gray-600">
-          Don't have an account?{' '}
-          
-        </p>
+        
       </div>
     </div>
   </div>
 </main>
 </div>
+<Card />
 </>
     );
 };

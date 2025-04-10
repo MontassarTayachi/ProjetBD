@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { refService } from './refService';
 
 const Referentiels = () => {
   // State for each referentiel type
@@ -24,34 +25,24 @@ const Referentiels = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Mock data - replace with actual API calls
-        const mockDomaines = [
-          { id: 1, libelle: 'Informatique' },
-          { id: 2, libelle: 'Ressources Humaines' }
-        ];
-        
-        const mockStructures = [
-          { id: 1, libelle: 'Direction Générale' },
-          { id: 2, libelle: 'Service Technique' }
-        ];
-        
-        const mockProfils = [
-          { id: 1, libelle: 'Administrateur' },
-          { id: 2, libelle: 'Utilisateur Standard' }
-        ];
-        
-        setDomaines(mockDomaines);
-        setStructures(mockStructures);
-        setProfils(mockProfils);
+        const [domainesRes, structuresRes, profilsRes] = await Promise.all([
+          refService.getAllDomaine(),
+          refService.getAllStructure(),
+          refService.getAllProfil()
+        ]);
+        setDomaines(domainesRes);
+        setStructures(structuresRes);
+        setProfils(profilsRes);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || 'Failed to fetch data');
         setLoading(false);
       }
     };
-    
+  
     fetchData();
-  }, []);
+  }, [showModal]);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -64,62 +55,75 @@ const Referentiels = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const data = { libelle: formData.libelle };
+  
       if (currentItem) {
-        // Update existing item
-        const updatedItem = { id: currentItem.id, libelle: formData.libelle };
-        
+        // Update
         if (activeTab === 'domaines') {
-          setDomaines(domaines.map(d => d.id === currentItem.id ? updatedItem : d));
+          await refService.updateDomaine(currentItem.id, data);
+          const updated = await refService.getAllDomaine();
+          setDomaines(updated.data);
         } else if (activeTab === 'structures') {
-          setStructures(structures.map(s => s.id === currentItem.id ? updatedItem : s));
+          await refService.updateStructure(currentItem.id, data);
+          const updated = await refService.getAllStructure();
+          setStructures(updated.data);
         } else {
-          setProfils(profils.map(p => p.id === currentItem.id ? updatedItem : p));
+          await refService.updateProfil(currentItem.id, data);
+          const updated = await refService.getAllProfil();
+          setProfils(updated.data);
         }
       } else {
-        // Create new item
-        const newItem = {
-          id: Math.max(...getActiveData().map(i => i.id)) + 1,
-          libelle: formData.libelle
-        };
-        
+        // Create
         if (activeTab === 'domaines') {
-          setDomaines([...domaines, newItem]);
+          await refService.createDomaine(data);
+          const updated = await refService.getAllDomaine();
+          setDomaines(updated.data);
         } else if (activeTab === 'structures') {
-          setStructures([...structures, newItem]);
+          await refService.createStructure(data);
+          const updated = await refService.getAllStructure();
+          setStructures(updated.data);
         } else {
-          setProfils([...profils, newItem]);
+          await refService.createProfil(data);
+          const updated = await refService.getAllProfil();
+          setProfils(updated.data);
         }
       }
+  
       setShowModal(false);
       resetForm();
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Operation failed');
     }
   };
-
-  const handleEdit = (item) => {
-    setCurrentItem(item);
-    setFormData({
-      libelle: item.libelle
-    });
-    setShowModal(true);
-  };
+  
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       try {
         if (activeTab === 'domaines') {
-          setDomaines(domaines.filter(d => d.id !== id));
+          await refService.deleteDomaine(id);
+          const updated = await refService.getAllDomaine();
+          setDomaines(updated.data);
         } else if (activeTab === 'structures') {
-          setStructures(structures.filter(s => s.id !== id));
+          await refService.deleteStructure(id);
+          const updated = await refService.getAllStructure();
+          setStructures(updated.data);
         } else {
-          setProfils(profils.filter(p => p.id !== id));
+          await refService.deleteProfil(id);
+          const updated = await refService.getAllProfil();
+          setProfils(updated.data);
         }
       } catch (err) {
-        setError(err.message);
+        setError(err.message || 'Delete failed');
       }
     }
   };
+  const handleEdit = (item) => {
+    setCurrentItem(item);
+    setFormData({ libelle: item.libelle });
+    setShowModal(true);
+  };
+  
 
   const resetForm = () => {
     setFormData({
@@ -130,9 +134,9 @@ const Referentiels = () => {
 
   const getActiveData = () => {
     switch (activeTab) {
-      case 'domaines': return domaines;
-      case 'structures': return structures;
-      case 'profils': return profils;
+      case 'domaines': return domaines || [];
+      case 'structures': return structures || [];
+      case 'profils': return profils || [];
       default: return [];
     }
   };

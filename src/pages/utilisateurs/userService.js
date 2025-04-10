@@ -26,7 +26,7 @@ export const userService = {
 
   createUser: async (userData) => {
     try {
-      const response = await api.post('/addUser', userData);
+      const response = await api.post('/user/addUser', userData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to create user: ${error.message}`);
@@ -35,7 +35,7 @@ export const userService = {
 
   updateUser: async (id, userData) => {
     try {
-      const response = await api.put(`/${id}`, userData);
+      const response = await api.put(`/user/${id}`, userData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
@@ -44,11 +44,30 @@ export const userService = {
 
   deleteUser: async (id) => {
     try {
-      await api.delete(`/${id}`);
+      await api.delete(`/user/${id}`);
     } catch (error) {
       throw new Error(`Failed to delete user: ${error.message}`);
     }
   },
+   // Role operations
+   getAllRoles: async () => {
+    try {
+      const response = await api.get('/user/allRole'); // Assuming you have this endpoint
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch roles: ${error.message}`);
+    }
+  },
+
+  createRole: async (roleData) => {
+    try {
+      const response = await api.post('/user/addRole', roleData);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to create role: ${error.message}`);
+    }
+  }
+
 
  
 };

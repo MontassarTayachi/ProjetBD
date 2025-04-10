@@ -2,11 +2,11 @@ import axios from 'axios';
 
 import api from '../../api/axios'; // Import the axios instance with interceptors
 
-export const refService = {
-//----------Domaine Crud -----------------
-getAllDomaine: async () => {
+export const personnelService = {
+//----------Employeur Crud -----------------
+getAllEmployeurs: async () => {
     try {
-      const response = await api.get('/domaine/getAll');
+      const response = await api.get('/employeur/getAll');
       console.log(response)
       console.log(response.data)
       return response.data;
@@ -15,126 +15,127 @@ getAllDomaine: async () => {
     }
   },
 
-  getDomaineById: async (id) => {
+  getEmployeurById: async (id) => {
     try {
-      const response = await api.get(`/domaine/${id}`);
+      const response = await api.get(`/employeur/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch user: ${error.message}`);
     }
   },
 
-  createDomaine: async (domaineData) => {
+  createEmployeur: async (employeurData) => {
     try {
-      const response = await api.post('/domaine', domaineData);
+      const response = await api.post('/employeur/add', employeurData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to create user: ${error.message}`);
     }
   },
 
-  updateDomaine: async (id, domaineData) => {
+  updateEmployeur: async (id, employeurData) => {
     try {
-      const response = await api.put(`/domaine/${id}`, domaineData);
+      const response = await api.put(`/employeur/${id}`, employeurData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
     }
   },
 
-  deleteDomaine: async (id) => {
+  deleteEmployeur: async (id) => {
     try {
-      await api.delete(`/domaine/${id}`);
+      await api.delete(`/employeur/${id}`);
     } catch (error) {
       throw new Error(`Failed to delete user: ${error.message}`);
     }
   },
   
-//----------structure Crud -----------------
-getAllStructure: async () => {
+//----------Formateur Crud -----------------
+getAllFormateurs: async () => {
     try {
-      const response = await api.get('/structure/getAll');
+      const response = await api.get('/formateur/getAll');
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch users: ${error.message}`);
     }
   },
 
-  getStructureById: async (id) => {
+  getFormateurById: async (id) => {
     try {
-      const response = await api.get(`/structure/${id}`);
+      const response = await api.get(`/formateur/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch user: ${error.message}`);
     }
   },
 
-  createStructure: async (structureData) => {
+  createFormateur: async (formateurData) => {
     try {
-      const response = await api.post('/structure/add', structureData);
+      const response = await api.post('/formateur/add', formateurData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to create user: ${error.message}`);
     }
   },
 
-  updateStructure: async (id, structureData) => {
+  updateFormateur: async (id, formateurData) => {
     try {
-      const response = await api.put(`/structure/${id}`, structureData);
+      const response = await api.put(`/formateur/${id}`, formateurData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
     }
   },
 
-  deleteStructure: async (id) => {
+  deleteFormateur: async (id) => {
     try {
-      await api.delete(`/structure/${id}`);
+      await api.delete(`/formateur/${id}`);
     } catch (error) {
       throw new Error(`Failed to delete user: ${error.message}`);
     }
   },
 
- //----------profil Crud -----------------
-getAllProfil: async () => {
+ //----------Participant Crud -----------------
+ getAllParticipants: async () => {
     try {
-      const response = await api.get('/profil/getAll');
+      const response = await api.get('/participant/getAll');
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch users: ${error.message}`);
     }
   },
 
-  getProfilById: async (id) => {
+  getParticipantById: async (id) => {
     try {
-      const response = await api.get(`/profil/${id}`);
+      const response = await api.get(`/participant/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch user: ${error.message}`);
     }
   },
 
-  createProfil: async (profilData) => {
+  createParticipant: async (participantData) => {
     try {
-      const response = await api.post('/profil', profilData);
+      console.log(participantData)
+      const response = await api.post('/participant/add', participantData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to create user: ${error.message}`);
     }
   },
 
-  updateProfil: async (id, profilData) => {
+  updateParticipant: async (id, participantData) => {
     try {
-      const response = await api.put(`/profil/${id}`, profilData);
+      const response = await api.put(`/participant/${id}`, participantData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
     }
   },
 
-  deleteProfil: async (id) => {
+  deleteParticipant: async (id) => {
     try {
-      await api.delete(`/profil/${id}`);
+      await api.delete(`/participant/${id}`);
     } catch (error) {
       throw new Error(`Failed to delete user: ${error.message}`);
     }
