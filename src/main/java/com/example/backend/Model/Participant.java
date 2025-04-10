@@ -1,11 +1,14 @@
 package com.example.backend.Model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -29,11 +32,7 @@ public class Participant {
     @JoinColumn(name = "idProfil")
     private Profil profil;
 
-    @ManyToMany
-    @JoinTable(
-            name = "participant_formation",
-            joinColumns = @JoinColumn(name = "participant_id"),
-            inverseJoinColumns = @JoinColumn(name = "formation_id")
-    )
-    private Set<Formation> formations;
+    @ManyToMany(mappedBy = "participants",cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("participants")
+    private List<Formation> formations ;
 }

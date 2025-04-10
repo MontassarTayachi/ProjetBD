@@ -3,6 +3,7 @@ package com.example.backend.Service.Implementation;
 import com.example.backend.Model.Employeur;
 import com.example.backend.Repository.EmployeurRepository;
 import com.example.backend.Service.EmployeurService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,7 @@ public class EmployeurServiceImp implements EmployeurService {
     }
 
     @Override
+    @Transactional
     public void deleteEmployeur(Long id) {
         if (!employeurRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employeur not found with ID: " + id);

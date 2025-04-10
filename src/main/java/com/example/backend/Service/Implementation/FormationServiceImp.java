@@ -3,6 +3,7 @@ package com.example.backend.Service.Implementation;
 import com.example.backend.Model.Domaine;
 import com.example.backend.Model.Formateur;
 import com.example.backend.Model.Formation;
+import com.example.backend.Model.Participant;
 import com.example.backend.Repository.DomaineRepository;
 import com.example.backend.Repository.FormateurRepository;
 import com.example.backend.Repository.FormationRepository;
@@ -10,8 +11,11 @@ import com.example.backend.Service.FormationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
+
 @Service
 public class FormationServiceImp implements FormationService {
     private final FormationRepository formationRepository;
@@ -38,16 +42,13 @@ public class FormationServiceImp implements FormationService {
 
     @Override
     public Formation createFormation(Formation formation) {
-        // 🛑 Validate required fields
         if (formation.getTitre() == null || formation.getDomaine() == null || formation.getFormateur() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Titre, domaine, and formateur are required.");
         }
 
-        // 🛑 Check if the formateur exists
         Formateur formateur = formateurRepository.findById(formation.getFormateur().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Formateur not found with ID: " + formation.getFormateur().getId()));
 
-        // 🛑 Check if the domaine exists
         Domaine domaine = domaineRepository.findById(formation.getDomaine().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Domaine not found with ID: " + formation.getDomaine().getId()));
 
@@ -69,9 +70,21 @@ public class FormationServiceImp implements FormationService {
         return formationRepository.save(existingFormation);
     }
 
+    @Transactional
     @Override
     public void deleteFormation(Long id) {
         Formation formation = getFormationById(id);
-        formationRepository.deleteById(id);
-    }
+
+
+
+        // Remove this formation from each participant’s list
+        for (Participant participant : formation.getParticipants()) {
+            participant.getFormations().remove(formation);
+        }
+
+        // Clear participant list from formation (break association)
+        formation.getParticipants().clear();
+
+        // Delete only the formation, not the participants
+        formationRepository.delete(formation);    }
 }

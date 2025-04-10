@@ -1,12 +1,12 @@
 package com.example.backend.Service.Implementation;
 
 import com.example.backend.Model.Formateur;
-import com.example.backend.Repository.EmployeurRepository;
 import com.example.backend.Repository.FormateurRepository;
 import com.example.backend.Service.FormateurService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -19,6 +19,7 @@ public class FormateurServiceImp implements FormateurService {
     public FormateurServiceImp(FormateurRepository formateurRepository) {
         this.formateurRepository = formateurRepository;
     }
+
     @Override
     public List<Formateur> getAllFormateurs() {
         return formateurRepository.findAll();
@@ -32,12 +33,10 @@ public class FormateurServiceImp implements FormateurService {
 
     @Override
     public Formateur createFormateur(Formateur formateur) {
-        // 🛑 Validate mandatory fields
         if (formateur.getNom() == null || formateur.getPrenom() == null || formateur.getEmail() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nom, prénom, and email are required.");
         }
 
-        // 🛑 Check if email is already used
         if (formateurRepository.existsByEmail(formateur.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use.");
         }
@@ -59,15 +58,15 @@ public class FormateurServiceImp implements FormateurService {
         return formateurRepository.save(existingFormateur);
     }
 
+    @Transactional
     @Override
     public void deleteFormateur(Long id) {
         Formateur formateur = getFormateurById(id);
 
-        // 🛑 Prevent deletion if the formateur has formations
         if (!formateur.getFormations().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete formateur with active formations.");
         }
 
-        formateurRepository.deleteById(id);
+        formateurRepository.delete(formateur);
     }
 }
