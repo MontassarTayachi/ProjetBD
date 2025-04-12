@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Login from './pages/auth/Login';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
@@ -11,15 +10,14 @@ import Personnel from "./pages/personnel/Personnel";
 import Formations from './pages/formations/Formations';
 import Referentiels from './pages/Referentiels/Referentiels';
 import UserLayout from './pages/dashboard/UserLayout';
-
+import './App.css';
 function App() {
   return (
-    <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
-          
+
           {/* Admin Routes */}
           <Route element={<ProtectedRoute roles={['ROLE_ADMIN']} />}>
             <Route path="/admin" element={<AdminLayout />} >
@@ -48,8 +46,6 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
   );
 }
-
 export default App;

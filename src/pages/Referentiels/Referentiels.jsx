@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { refService } from './refService';
-
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import Box from '@mui/material/Box';
+import { MdDelete } from "react-icons/md";
+import { MdOutlineModeEdit } from "react-icons/md";
 const Referentiels = () => {
   // State for each referentiel type
   const [domaines, setDomaines] = useState([]);
@@ -33,6 +36,9 @@ const Referentiels = () => {
         setDomaines(domainesRes);
         setStructures(structuresRes);
         setProfils(profilsRes);
+        console.log(domainesRes);
+        console.log(structuresRes);
+        console.log(profilsRes);
         setLoading(false);
       } catch (err) {
         setError(err.message || 'Failed to fetch data');
@@ -153,10 +159,37 @@ const Referentiels = () => {
   const filteredData = getActiveData().filter(item =>
     item.libelle.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const columns = [
+    { field: 'id', headerName: 'ID', width: 90 , headerClassName: 'super-app-theme--header',},
+    { field: 'libelle', headerName: 'Libellé', width: 200, headerClassName: 'super-app-theme--header', },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      headerClassName: 'super-app-theme--header',
+      editable: false,
+      renderCell: (params) => (
+              <div className="px-5 py-4  whitespace-nowrap text-sm font-medium">
+                               <button
+                                 onClick={() => handleEdit(params.row)}
+                                 className="text-indigo-600 hover:text-indigo-900 mr-3"
+                               >
+                                 <Edit2 className="w-4 h-4 inline" />
+                               </button>
+                               <button
+                                 onClick={() => handleDelete(params.row.id)}
+                                 className="text-red-600 hover:text-red-900"
+                               >
+                                 <Trash2 className="w-4 h-4 inline" />
+                               </button>
+                      </div>
+      ),
+    }
+  ];
 
   if (loading) return <div className="flex justify-center items-center h-full">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">Error: {error}</div>;
-
+  
   return (
     <div className="flex-1  p-8 bg-white rounded-xl shadow-md overflow-hidden mx-8">
       <div className="flex justify-between items-center mb-8">
@@ -213,45 +246,24 @@ const Referentiels = () => {
 
       {/* Data Table */}
       <div className="">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a6699] uppercase tracking-wider">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a6699] uppercase tracking-wider">Libellé</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a6699] uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.libelle}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="text-[#947ebc] hover:text-[#7a6699] mr-4"
-                    >
-                      <Edit2 className="w-5 h-5 inline mr-1" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-5 h-5 inline mr-1" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
-                  No {getActiveTitle().toLowerCase()} found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <Box sx={{ height: 500, width: '100%'}}>
+      <DataGrid
+        rows={filteredData}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 6,
+            },
+          },
+        }}
+        
+    slots={{ toolbar: GridToolbar }}
+        pageSizeOptions={[5]}
+        checkboxSelection
+        disableRowSelectionOnClick
+      />
+    </Box>
       </div>
 
       {/* Add/Edit Modal */}

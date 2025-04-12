@@ -1,17 +1,24 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useEffect } from 'react';
+import React from 'react';
 
 const ProtectedRoute = ({ roles }) => {
-  const { user } = useAuth();
-  console.log("User Role:", user?.role);
-  console.log("Allowed Roles:", roles);
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
 
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  useEffect(() => {
+    if (!loading) {
+      if (!isAuthenticated) {
+        navigate('/login');
+      } else if (roles && (!user || !roles.includes(user.role))) {
+        navigate('/');
+      }
+    }
+  }, [isAuthenticated, loading, roles, user, navigate]);
+
+  // Optionnel : afficher un loader pendant le chargement
+  if (loading) return <div>Chargement...</div>;
 
   return <Outlet />;
 };

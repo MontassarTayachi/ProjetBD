@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, X, Briefcase, UserCheck, Users } from 'lucide-react';
 import { personnelService } from './personnelService';
 import { formationService } from '../formations/formationService';
-
+import Box from '@mui/material/Box';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import { DataGrid,GridToolbar } from '@mui/x-data-grid';
 
 export default function Personnel() {
   const [activeTab, setActiveTab] = useState('employeurs');
@@ -40,6 +41,9 @@ export default function Personnel() {
 
   useEffect(() => {
     fetchData();
+    console.log(employeurs)
+    console.log(formateurs)
+    console.log(participants)
   }, [activeTab]);
 
   const fetchData = async () => {
@@ -125,7 +129,7 @@ export default function Personnel() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+    console.log(formData)
     try {
       let response;
       if (currentItem) {
@@ -279,64 +283,128 @@ export default function Personnel() {
     }
   };
 
-  const renderTable = () => {
-    const data = activeTab === 'employeurs' ? employeurs : 
-                 activeTab === 'formateurs' ? formateurs : 
-                 participants;
-    const columns = activeTab === 'employeurs' ? ['ID', 'Employer Name'] :
-                    activeTab === 'formateurs' ? ['ID', 'Name', 'Email', 'Type'] :
-                    ['ID', 'Name', 'Email', 'Phone'];
-
-    return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {columns.map(col => (
-                <th key={col} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {col}
-                </th>
-              ))}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {data.map(item => (
-              <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {activeTab === 'employeurs' ? item.nomemployeur : `${item.nom} ${item.prenom}`}
-                </td>
-                {activeTab !== 'employeurs' && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.email}</td>
-                )}
-                {activeTab === 'formateurs' && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.type}</td>
-                )}
-                {activeTab === 'participants' && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.tel}</td>
-                )}
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+  const columnsformateurs = [
+    { field: 'id', headerName: 'ID',  headerClassName: 'super-app-theme--header',width: 90 },
+    {
+      field: 'prenom',
+      headerName: 'First name',
+      width: 120,
+      editable: true,
+      headerClassName: 'super-app-theme--header',
+    },
+    {
+      field: 'nom',
+      headerName: 'Last name',
+      width: 120,
+      editable: true,
+      headerClassName: 'super-app-theme--header',
+    },
+    {field: 'email', headerName: 'Email',  headerClassName: 'super-app-theme--header',width: 200},
+    {field: 'tel', headerName: 'Phone',  headerClassName: 'super-app-theme--header',width: 150},
+    {field: 'type', headerName: 'Type', width: 150,headerClassName: 'super-app-theme--header',},
+    {field: 'employeur', headerName: 'nomemployeur',  headerClassName: 'super-app-theme--header',width: 150,
+      renderCell: (params) => (
+        params.row.employeur ? params.row.employeur.nomemployeur : 'N/A'
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      headerClassName: 'super-app-theme--header',
+      renderCell: (params) => (
+        <div className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
-                    onClick={() => handleEdit(item)}
+                    onClick={() => handleEdit(params.row)}
                     className="text-indigo-600 hover:text-indigo-900 mr-3"
                   >
                     <Edit2 className="w-4 h-4 inline" />
                   </button>
                   <button
-                    onClick={() => handleDeleteClick(item.id)}
+                    onClick={() => handleDeleteClick(params.row.id)}
                     className="text-red-600 hover:text-red-900"
                   >
                     <Trash2 className="w-4 h-4 inline" />
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+         </div>
+      ),
+    }
+  ];
+  const columnsemployeurs = [
+    { field: 'id', headerName: 'ID', width: 90, headerClassName: 'super-app-theme--header' },
+    {
+      field: 'nomemployeur',
+      headerName: 'Employer Name',
+      width: 250,
+      headerClassName: 'super-app-theme--header',
+      editable: true,
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      headerClassName: 'super-app-theme--header',
+      width: 150,
+      renderCell: (params) => (
+        <div className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleEdit(params.row)}
+                    className="text-indigo-600 hover:text-indigo-900 mr-3"
+                  >
+                    <Edit2 className="w-4 h-4 inline" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(params.row.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <Trash2 className="w-4 h-4 inline" />
+                  </button>
+         </div>
+      ),
+    }
+  ];
+  const columnsparticipants = [
+    { field: 'id', headerName: 'ID', width: 90, headerClassName: 'super-app-theme--header' },
+    {
+      field: 'nom',
+      headerName: 'First name',
+      headerClassName: 'super-app-theme--header',
+      width: 120,
+      editable: true,
+    },
+    {
+      field: 'prenom',
+      headerName: 'Last name',
+      headerClassName: 'super-app-theme--header',
+      width: 120,
+      editable: true,
+    },
+    {field: 'email', headerName: 'Email', headerClassName: 'super-app-theme--header', width: 200},
+    {field: 'tel', headerName: 'Phone',  headerClassName: 'super-app-theme--header',width: 150},
+    {field: 'formations', headerName: 'Formations',  headerClassName: 'super-app-theme--header',width: 150},
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      headerClassName: 'super-app-theme--header',
+      width: 150,
+      renderCell: (params) => (
+        <div className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleEdit(params.row)}
+                    className="text-indigo-600 hover:text-indigo-900 mr-3"
+                  >
+                    <Edit2 className="w-4 h-4 inline" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(params.row.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <Trash2 className="w-4 h-4 inline" />
+                  </button>
+         </div>
+      ),
+    }
+  ];
+ 
 
   return (
     <div className="flex-1 p-8 bg-white rounded-xl shadow-md overflow-hidden mx-8">
@@ -516,7 +584,33 @@ export default function Personnel() {
       </div>
 
       {/* Content */}
-      {renderTable()}
+      <Box sx={{ height: 500, width: '100%'}}>
+      <DataGrid
+        rows={
+          activeTab === 'employeurs' ? employeurs :
+          activeTab === 'formateurs' ? formateurs :
+          participants
+        }
+        columns={
+          activeTab === 'employeurs' ? columnsemployeurs :
+          activeTab === 'formateurs' ? columnsformateurs :
+          columnsparticipants
+        }
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 6,
+            },
+          },
+        }}
+        
+    slots={{ toolbar: GridToolbar }}
+        pageSizeOptions={[5]}
+        checkboxSelection
+        disableRowSelectionOnClick
+      />
+    </Box>
+
     </div>
   );
 }

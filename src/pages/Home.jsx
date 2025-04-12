@@ -1,8 +1,31 @@
 import { ArrowRight } from 'lucide-react'; // For the arrow icon
 import image from '../assets/home.png'
 import logo from '../assets/logo.png'
-
+import {useAuth} from '../contexts/AuthContext';
+import { useEffect, useState } from 'react';
 export default function Home() {
+
+  const { user, isAuthenticated,loading } = useAuth();
+  const [distnation, setDistnation] = useState("/login");
+   console.log(user);
+   console.log(isAuthenticated);
+  useEffect(() => {
+    if (loading) {
+      return; // Ne rien faire pendant le chargement
+    }
+    if (isAuthenticated) {
+      const role = user.role;
+      console.log(role);
+      if (role === "ROLE_ADMIN") {
+        setDistnation("/admin/dash");
+      } else if (role === "ROLE_RESPONSABLE") {
+        setDistnation("/manager");
+      } else if (role === "ROLE_USER") {
+        setDistnation("/user/formation");
+      }
+    }
+  }
+  , [isAuthenticated, user,loading]);
     return (
       <> 
       <div class="flex items-center space-x-4 rtl:space-x-reverse bg-gray-50 pl-24 pt-12">
@@ -46,7 +69,7 @@ export default function Home() {
                   {/* Arrow button to login */}
                   <div className="flex justify-center md:justify-start">
                     <a 
-                      href="/login" 
+                      href={distnation} 
                       className="flex items-center space-x-2 text-[#c1b5db] hover:text-indigo-800 transition-colors"
                     >
                       <span className="text-lg font-medium">Get Started</span>

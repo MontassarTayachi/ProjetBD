@@ -1,6 +1,16 @@
 import { Bell, Search } from 'lucide-react';
-
+import { useAuth } from '../contexts/AuthContext';
+import react from 'react';
 export default function Header() {
+  
+  const { user,loading } = useAuth();
+  const [username,setUsername] = react.useState(null);
+  react.useEffect(() => {
+    if (!loading) {
+      setUsername(user?.sub);
+    }
+  }
+  , [loading]);
   return (
     <header className="bg-gray-50  p-4 flex items-center justify-between py-4">
       <div className="relative w-64">
@@ -15,9 +25,9 @@ export default function Header() {
         
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-full bg-[#d8d4af] flex items-center justify-center text-white font-medium">
-            JD
+            {username ? username.charAt(0).toUpperCase() : ''}
           </div>
-          <span className="text-sm font-medium">John Doe</span>
+          <span className="text-sm font-medium">{username}</span>
         </div>
       </div>
     </header>

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { userService } from './userService';
-
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import Box from '@mui/material/Box';
+import { Edit2, Trash2 } from 'lucide-react';
 const Utilisateurs = () => {
 const [users, setUsers] = useState([]);
 const [roles, setRoles] = useState([]);
@@ -36,7 +37,7 @@ useEffect(() => {
   };
   
   fetchData();
-}, []);
+}, [showModal]);
 
 const handleInputChange = (e) => {
   const { name, value } = e.target;
@@ -75,7 +76,6 @@ const handleSubmit = async (e) => {
           id: parseInt(formData.role)
         }
       });
-      setUsers([...users, newUser]);
     }
 
     setShowModal(false);
@@ -116,14 +116,45 @@ const resetForm = () => {
   setCurrentUser(null);
 };
 
-const filteredUsers = users.filter(user =>
-  user.login.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  user.role.name.toLowerCase().includes(searchTerm.toLowerCase())
-);
+
 
 if (loading) return <div className="flex justify-center items-center h-full">Loading...</div>;
 if (error) return <div className="text-red-500 text-center p-4">Error: {error}</div>;
+const columns = [
+  { field: 'id', headerName: 'ID', width: 90 , headerClassName: 'super-app-theme--header',},
+  { field: 'login', headerName: 'Login', width: 200, headerClassName: 'super-app-theme--header', },
+  {
+    field: 'role',
+    headerName: 'Role',
+    width: 200,
+    headerClassName: 'super-app-theme--header',
+    renderCell: (params) => params.row.role?.name || '',
+  },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    width: 150,
+    headerClassName: 'super-app-theme--header',
+    renderCell: (params) => (
+      <div className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleEdit(params.row)}
+                    className="text-indigo-600 hover:text-indigo-900 mr-3"
+                  >
+                    <Edit2 className="w-4 h-4 inline" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(params.row.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <Trash2 className="w-4 h-4 inline" />
+                  </button>
+         </div>
+    ),
+  },
 
+];
+  
 return (
   <div className="flex-1 p-8 bg-white rounded-xl shadow-md overflow-hidden mx-8 ">
     <div className="flex justify-between items-center mb-8">
@@ -143,52 +174,24 @@ return (
 
     {/* Users Table */}
     <div className="">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#7a6699] uppercase tracking-wider">ID</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#7a6699] uppercase tracking-wider">Login</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#7a6699] uppercase tracking-wider">Role</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#7a6699] uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.login}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${user.role.name === 'Admin' ? 'bg-purple-100 text-purple-800' : 
-                      user.role.name === 'Manager' ? 'bg-blue-100 text-blue-800' : 
-                      'bg-green-100 text-green-800'}`}>
-                    {user.role.name}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(user)}
-                    className="text-[#947ebc] hover:text-[#7a6699] mr-4"
-                  > edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="text-red-500 hover:text-red-700"
-                  > delete
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
-                No users found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <Box sx={{ height: 500, width: '100%'}}>
+      <DataGrid
+        rows={users}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 6,
+            },
+          },
+        }}
+        
+    slots={{ toolbar: GridToolbar }}
+        pageSizeOptions={[5]}
+        checkboxSelection
+        disableRowSelectionOnClick
+      />
+    </Box>
     </div>
 
     {/* Add/Edit User Modal */}
