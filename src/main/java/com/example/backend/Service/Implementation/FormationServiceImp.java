@@ -3,10 +3,11 @@ package com.example.backend.Service.Implementation;
 import com.example.backend.Model.Domaine;
 import com.example.backend.Model.Formateur;
 import com.example.backend.Model.Formation;
-import com.example.backend.Model.Participant;
+import com.example.backend.Model.Participation;
 import com.example.backend.Repository.DomaineRepository;
 import com.example.backend.Repository.FormateurRepository;
 import com.example.backend.Repository.FormationRepository;
+import com.example.backend.Repository.ParticipationRepository;
 import com.example.backend.Service.FormationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,12 +22,15 @@ public class FormationServiceImp implements FormationService {
     private final FormationRepository formationRepository;
     private final FormateurRepository formateurRepository;
     private final DomaineRepository domaineRepository;
+    private final ParticipationRepository participationRepository;
 
     @Autowired
-    public FormationServiceImp(FormationRepository formationRepository, FormateurRepository formateurRepository, DomaineRepository domaineRepository) {
+    public FormationServiceImp(FormationRepository formationRepository, FormateurRepository formateurRepository,
+                               DomaineRepository domaineRepository, ParticipationRepository participationRepository) {
         this.formationRepository = formationRepository;
         this.formateurRepository = formateurRepository;
         this.domaineRepository = domaineRepository;
+        this.participationRepository = participationRepository;
     }
 
     @Override
@@ -75,16 +79,13 @@ public class FormationServiceImp implements FormationService {
     public void deleteFormation(Long id) {
         Formation formation = getFormationById(id);
 
-
-
-        // Remove this formation from each participant’s list
-        for (Participant participant : formation.getParticipants()) {
-            participant.getFormations().remove(formation);
+        // Delete participations associated with this formation
+        List<Participation> participations = formation.getParticipations();
+        if (participations != null && !participations.isEmpty()) {
+            participationRepository.deleteAll(participations);
         }
 
-        // Clear participant list from formation (break association)
-        formation.getParticipants().clear();
-
-        // Delete only the formation, not the participants
-        formationRepository.delete(formation);    }
+        // Then delete the formation
+        formationRepository.delete(formation);
+    }
 }

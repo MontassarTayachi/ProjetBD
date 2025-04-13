@@ -1,7 +1,11 @@
 package com.example.backend.Controller;
 
+import com.example.backend.Model.Historique;
 import com.example.backend.Model.Structure;
+import com.example.backend.Security.JwtUtils;
+import com.example.backend.Service.HistoriqueService;
 import com.example.backend.Service.StructureService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,11 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5174")
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/structure")
 public class StructureController {
     private final StructureService structureService;
-
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private HistoriqueService historiqueService;
     @Autowired
     public StructureController(StructureService structureService) {
         this.structureService = structureService;
@@ -32,20 +39,30 @@ public class StructureController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Structure> createStructure(@RequestBody Structure structure) {
+    public ResponseEntity<Structure> createStructure(HttpServletRequest request, @RequestBody Structure structure) {
         Structure newStructure = structureService.createStructure(structure);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(
+                new Historique("Ajouté une structure nommée : " + structure.getLibelle(), java.time.LocalDateTime.now(), userLogin)
+        );
         return ResponseEntity.status(201).body(newStructure);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Structure> updateStructure(@PathVariable Long id, @RequestBody Structure updatedStructure) {
+    public ResponseEntity<Structure> updateStructure(HttpServletRequest request,@PathVariable Long id, @RequestBody Structure updatedStructure) {
+        Structure existingStructure = structureService.getStructureById(id);
         Structure updated = structureService.updateStructure(id, updatedStructure);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("Update Structure named : " + existingStructure.getLibelle(), java.time.LocalDateTime.now(), userLogin));
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStructure(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteStructure(HttpServletRequest request,@PathVariable Long id) {
+       Structure existingStructure = structureService.getStructureById(id);
         structureService.deleteStructure(id);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("Deleted Structure named : " + existingStructure.getLibelle(), java.time.LocalDateTime.now(), userLogin));
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,40 +1,57 @@
 package com.example.backend.Controller;
 
+import com.example.backend.Model.Historique;
 import com.example.backend.Model.Role;
 import com.example.backend.Model.Utilisateur;
+import com.example.backend.Security.JwtUtils;
+import com.example.backend.Service.HistoriqueService;
 import com.example.backend.Service.RoleService;
 import com.example.backend.Service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5174")
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
     private final RoleService roleService;
-
+    private JwtUtils jwtUtils;
+    private HistoriqueService  historiqueService;
 
     @Autowired
-    public UserController(UserService userService,RoleService roleService) {
+    public UserController(UserService userService,RoleService roleService, JwtUtils jwtUtils, HistoriqueService historiqueService) {
         this.userService = userService;
         this.roleService=roleService;
+        this.jwtUtils = jwtUtils;
+        this.historiqueService = historiqueService;
+
     }
 
     // Create a new user
     @PostMapping("/addUser")
-    public ResponseEntity<Utilisateur> createUser(@RequestBody Utilisateur user) {
-        return ResponseEntity.ok(userService.createUser(user));
+    public ResponseEntity<Utilisateur> createUser(HttpServletRequest request, @RequestBody Utilisateur user) {
+        Utilisateur newUser = userService.createUser(user);
+
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(
+                new Historique("Add a named user : " + user.getLogin(),LocalDateTime.now(), userLogin)
+        );
+        return ResponseEntity.ok(newUser);
     }
     @PostMapping("/addRole")
-    public ResponseEntity<Role> createRole(@RequestBody Role role) {
-        return ResponseEntity.ok(roleService.createRole(role));
+    public ResponseEntity<Role> createRole(HttpServletRequest request,@RequestBody Role role) {
+        Role newRole = roleService.createRole(role);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("User add Role named"+role.getName(), LocalDateTime.now(),userLogin));
+        return ResponseEntity.ok(newRole);
     }
     @GetMapping("/allRole")
     public ResponseEntity<List<Role>> getAllRoles() {
@@ -55,14 +72,27 @@ public class UserController {
 
     // Update user
     @PutMapping("/{id}")
-    public ResponseEntity<Utilisateur> updateUser(@PathVariable Long id, @RequestBody Utilisateur userDetails) {
-        return ResponseEntity.ok(userService.updateUser(id, userDetails));
+    public ResponseEntity<Utilisateur> updateUser(HttpServletRequest request,@PathVariable Long id, @RequestBody Utilisateur userDetails) {
+        Utilisateur existingUser = userService.getUserById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+        Utilisateur updatedUser = userService.updateUser(id, userDetails);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("Admin User update user named : " + existingUser.getLogin(), LocalDateTime.now(), userLogin));
+        if (updatedUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Log the update action
+        return ResponseEntity.ok(updatedUser);
     }
 
     // Delete user
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(HttpServletRequest request,@PathVariable Long id) {
         userService.deleteUser(id);
+        Utilisateur user = userService.getUserById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+        String userlogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("Admin user delete user named :" + user.getLogin(), java.time.LocalDateTime.now(), userlogin));
         return ResponseEntity.noContent().build();
     }
 }

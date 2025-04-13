@@ -31,12 +31,9 @@ public class Formation {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "idFormateur", nullable = false)
     private Formateur formateur;
-
-    @ManyToMany
-    @JoinTable(
-            name = "participant_formation",
-            joinColumns = @JoinColumn(name = "formation_id"),
-            inverseJoinColumns = @JoinColumn(name = "participant_id")
-    )
-    private List<Participant> participants;
+    @Column(length = 512)
+    private String imageUrl;
+    @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("formation")
+    private List<Participation> participations;
 }

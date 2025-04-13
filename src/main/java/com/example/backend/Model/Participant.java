@@ -32,7 +32,7 @@ public class Participant {
     @JoinColumn(name = "idProfil")
     private Profil profil;
 
-    @ManyToMany(mappedBy = "participants",cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("participants")
-    private List<Formation> formations ;
+    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("participant")
+    private List<Participation> participations;
 }

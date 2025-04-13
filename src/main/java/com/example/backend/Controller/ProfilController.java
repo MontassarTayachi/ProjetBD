@@ -1,7 +1,11 @@
 package com.example.backend.Controller;
 
+import com.example.backend.Model.Historique;
 import com.example.backend.Model.Profil;
+import com.example.backend.Security.JwtUtils;
+import com.example.backend.Service.HistoriqueService;
 import com.example.backend.Service.ProfilService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,11 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5174")
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/profil")
 public class ProfilController {
     private final ProfilService profilService;
-
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private HistoriqueService historiqueService;
     @Autowired
     public ProfilController(ProfilService profilService) {
         this.profilService = profilService;
@@ -32,20 +39,30 @@ public class ProfilController {
     }
 
     @PostMapping
-    public ResponseEntity<Profil> createProfil(@RequestBody Profil profil) {
+    public ResponseEntity<Profil> createProfil(HttpServletRequest request, @RequestBody Profil profil) {
         Profil newProfil = profilService.createProfil(profil);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(
+                new Historique("Ajouté un profil nommé : " + profil.getLibelle(), java.time.LocalDateTime.now(), userLogin)
+        );
         return ResponseEntity.status(201).body(newProfil);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Profil> updateProfil(@PathVariable Long id, @RequestBody Profil updatedProfil) {
+    public ResponseEntity<Profil> updateProfil(HttpServletRequest request,@PathVariable Long id, @RequestBody Profil updatedProfil) {
+        Profil existingProfil = profilService.getProfilById(id);
         Profil updated = profilService.updateProfil(id, updatedProfil);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("updated the profil named : " + existingProfil.getLibelle() + " to " + updated.getLibelle(), java.time.LocalDateTime.now(), userLogin));
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProfil(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProfil(HttpServletRequest request,@PathVariable Long id) {
+        Profil existingProfil = profilService.getProfilById(id);
         profilService.deleteProfil(id);
-        return ResponseEntity.noContent().build();
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("deleted the profil named : " + existingProfil.getLibelle(), java.time.LocalDateTime.now(), userLogin));
+         return ResponseEntity.noContent().build();
     }
 }

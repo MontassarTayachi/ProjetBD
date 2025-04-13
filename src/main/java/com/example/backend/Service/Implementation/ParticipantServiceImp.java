@@ -2,9 +2,10 @@ package com.example.backend.Service.Implementation;
 
 import com.example.backend.Model.Formation;
 import com.example.backend.Model.Participant;
-import com.example.backend.Repository.FormateurRepository;
+import com.example.backend.Model.Participation;
 import com.example.backend.Repository.FormationRepository;
 import com.example.backend.Repository.ParticipantRepository;
+import com.example.backend.Repository.ParticipationRepository;
 import com.example.backend.Service.ParticipantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,16 +16,22 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 @Service
 public class ParticipantServiceImp implements ParticipantService {
     private final ParticipantRepository participantRepository;
     private final FormationRepository formationRepository;
+    private final ParticipationRepository participationRepository;
 
     @Autowired
-    public ParticipantServiceImp(ParticipantRepository participantRepository , FormationRepository formationRepository) {
+    public ParticipantServiceImp(ParticipantRepository participantRepository,
+                                 FormationRepository formationRepository,
+                                 ParticipationRepository participationRepository) {
         this.participantRepository = participantRepository;
-        this.formationRepository =formationRepository;
+        this.formationRepository = formationRepository;
+        this.participationRepository = participationRepository;
     }
+
     @Override
     public List<Participant> getAllParticipants() {
         return participantRepository.findAll();
@@ -43,21 +50,20 @@ public class ParticipantServiceImp implements ParticipantService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Participant with the same email already exists");
         }
 
-        List<Formation> attachedFormations = new ArrayList<>();
-        if (participant.getFormations() != null) {
-            for (Formation f : participant.getFormations()) {
-                Formation managedFormation = formationRepository.findById(f.getId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Formation not found with id " + f.getId()));
+        Participant savedParticipant = participantRepository.save(participant);
 
-                // Link both sides of the relationship
-                managedFormation.getParticipants().add(participant);
-                attachedFormations.add(managedFormation);
+        if (participant.getParticipations() != null) {
+            for (Participation p : participant.getParticipations()) {
+                Formation formation = formationRepository.findById(p.getFormation().getId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Formation not found with id " + p.getFormation().getId()));
+
+                p.setParticipant(savedParticipant);
+                p.setFormation(formation);
+                participationRepository.save(p);
             }
         }
 
-        participant.setFormations(attachedFormations);
-
-        return participantRepository.save(participant);
+        return savedParticipant;
     }
 
     @Override
@@ -69,7 +75,9 @@ public class ParticipantServiceImp implements ParticipantService {
         participant.setTel(updatedParticipant.getTel());
         participant.setStructure(updatedParticipant.getStructure());
         participant.setProfil(updatedParticipant.getProfil());
-        participant.setFormations(updatedParticipant.getFormations());
+
+        // Note: Participations update logic can be handled separately if needed
+
         return participantRepository.save(participant);
     }
 
@@ -79,15 +87,10 @@ public class ParticipantServiceImp implements ParticipantService {
         Participant participant = participantRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Participant not found with ID: " + id));
 
+        // Delete participations associated with the participant
+        participationRepository.deleteAll(participant.getParticipations());
 
-        // Remove this participant from each formation's list
-        for (Formation formation : participant.getFormations()) {
-            formation.getParticipants().remove(participant);
-        }
-
-        // Clear formations from participant (break association)
-        participant.getFormations().clear();
-
-        // Delete only the participant
-        participantRepository.delete(participant);    }
+        // Then delete the participant
+        participantRepository.delete(participant);
+    }
 }

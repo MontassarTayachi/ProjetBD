@@ -2,9 +2,11 @@ package com.example.backend.Controller;
 
 import com.example.backend.DTO.LoginRequest;
 import com.example.backend.DTO.LoginResponse;
+import com.example.backend.Model.Historique;
 import com.example.backend.Model.Utilisateur;
 import com.example.backend.Repository.UtilisateurRepository;
 import com.example.backend.Security.JwtUtils;
+import com.example.backend.Service.HistoriqueService;
 import com.example.backend.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,8 +17,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.sql.DataSource;
+import java.time.LocalDateTime;
+
 @RestController
-@CrossOrigin(origins = "http://localhost:5174")
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
@@ -27,6 +32,10 @@ public class AuthController {
     private UserService userService;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private HistoriqueService historiqueService;
+    @Autowired
+    private DataSource dataSource;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
@@ -37,7 +46,11 @@ public class AuthController {
             // LoginResponse loginResponse = new LoginResponse(jwtUtils.generate(user), user.getRole().name());
 
             //return ResponseEntity.ok(jwtUtils.generate(user));
+            LocalDateTime myObj = LocalDateTime.now();
+            Historique historique = new Historique("user was logged in", myObj,user.getLogin());
+            historiqueService.createHistorique(historique);
             return ResponseEntity.ok(new LoginResponse(jwtUtils.generate(user), user.getRole().getName()));
+
         } catch (BadCredentialsException e) {
             // Incorrect password, return specific error message
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(null, "Invalid credentials"));

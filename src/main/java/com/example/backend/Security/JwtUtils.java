@@ -5,49 +5,62 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Service
 public class JwtUtils {
-    private static final int expireInMs = 60*300 * 1000;
 
-    private final static Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
+
+    private static final int EXPIRE_IN_MS = 60 * 300 * 1000; // 5 heures
+
+    public JwtUtils(@Value("${jwt.secret}") String secretKey) {
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        this.key = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.getJcaName());
+    }
 
     public String generate(Utilisateur user) {
-        String login = user.getLogin();
         return Jwts.builder()
                 .setSubject(user.getLogin())
-                .claim("name", login)  // Add the "name" claim with the full name
-                .claim("role", user.getRole().getName())  // ✅ Add user role to JWT
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expireInMs))
-                .signWith(key)
+                .claim("name", user.getLogin())
+                .claim("role", user.getRole().getName())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_IN_MS))
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public boolean isValid(String token , UserDetails user){
-        return getUsername(token).equals(user.getUsername()) ;
+    public boolean isValid(String token, UserDetails user) {
+        return getUsername(token).equals(user.getUsername()) && !isExpired(token);
     }
 
-
     public String getUsername(String token) {
-        Claims claims = getClaims(token);
-        return claims.getSubject();
+        return getClaims(token).getSubject();
+    }
+
+    public String getUsernameFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7); // Remove "Bearer "
+            return getUsername(token);
+        }
+        return null;
     }
 
     public boolean isExpired(String token) {
-        Claims claims = getClaims(token);
-        return claims.getExpiration().before(new Date(System.currentTimeMillis()));
+        return getClaims(token).getExpiration().before(new Date());
     }
 
     public Claims getClaims(String token) {
-
-        return Jwts
-                .parserBuilder()
+        return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
