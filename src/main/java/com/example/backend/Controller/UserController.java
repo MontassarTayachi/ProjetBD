@@ -7,11 +7,16 @@ import com.example.backend.Security.JwtUtils;
 import com.example.backend.Service.HistoriqueService;
 import com.example.backend.Service.RoleService;
 import com.example.backend.Service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +25,7 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/user")
 public class UserController {
+    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/src/main/resources/static/uploads/";
 
     private final UserService userService;
     private final RoleService roleService;
@@ -36,16 +42,44 @@ public class UserController {
     }
 
     // Create a new user
-    @PostMapping("/addUser")
-    public ResponseEntity<Utilisateur> createUser(HttpServletRequest request, @RequestBody Utilisateur user) {
-        Utilisateur newUser = userService.createUser(user);
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Utilisateur> createUser(
+            HttpServletRequest request,
+            @RequestPart("user") String userJson,
+            @RequestPart(value = "image", required = false) MultipartFile file
+    ) throws JsonProcessingException {
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Utilisateur user = objectMapper.readValue(userJson, Utilisateur.class);
+            Utilisateur newUser = userService.createUser(user);
 
         String userLogin = jwtUtils.getUsernameFromRequest(request);
         historiqueService.createHistorique(
                 new Historique("Add a named user : " + user.getLogin(),LocalDateTime.now(), userLogin)
         );
+        if (file != null && !file.isEmpty()) {
+            try {
+                File uploadDir = new File(UPLOAD_DIR);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs();
+                }
+                String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
+                String fileName = "user"+newUser.getId() + extension;
+                String fullPath = UPLOAD_DIR + fileName;
+                file.transferTo(new File(fullPath));
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                String fullImageUrl = baseUrl + "/uploads/" + fileName;
+                newUser.setImage(fullImageUrl);
+                userService.updateUser(newUser.getId(), newUser);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(500).build();
+            }
+        }
+
         return ResponseEntity.ok(newUser);
     }
+
     @PostMapping("/addRole")
     public ResponseEntity<Role> createRole(HttpServletRequest request,@RequestBody Role role) {
         Role newRole = roleService.createRole(role);

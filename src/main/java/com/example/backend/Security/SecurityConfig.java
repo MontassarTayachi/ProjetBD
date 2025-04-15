@@ -38,7 +38,7 @@ public class SecurityConfig  {
                 .csrf().disable()
                 .authorizeRequests()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/user/**").hasRole("ADMIN")
+                .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/domaine/**").hasRole("ADMIN")
                 .requestMatchers("/api/profil/**").hasRole("ADMIN")
                 .requestMatchers("/api/employeur/**").hasRole("ADMIN")

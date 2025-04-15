@@ -78,7 +78,4 @@ public class ParticipationController {
         participationService.deleteParticipation(id);
         return ResponseEntity.noContent().build();
     }
-
-
-
 }

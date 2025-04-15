@@ -15,6 +15,7 @@ public class Utilisateur {
     private long id ;
     private String login ;
     private String password;
+    private String image;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "idRole", nullable = false)
     private Role role;
