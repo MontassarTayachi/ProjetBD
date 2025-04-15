@@ -27,6 +27,15 @@ public class ParticipationServiceImp implements ParticipationService {
         return participationRepository.save(participation);
     }
 
+    @Override
+    public void IncrnombreHeures(List<Long> ids,int value){
+        for(int i=0;i<ids.size();i++){
+            Participation participation = getParticipationById(ids.get(i));
+            participation.setNombreHeures(participation.getNombreHeures()+value);
+
+        }
+
+    }
 
     @Override
     public void deleteParticipation(Long id) {
@@ -52,6 +61,5 @@ public class ParticipationServiceImp implements ParticipationService {
     public List<Participation> getRecentParticipations(int limit) {
         return participationRepository.findRecentParticipations(limit);
     }
-
 
 }

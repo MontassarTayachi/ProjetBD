@@ -24,6 +24,8 @@ public class Formation {
     private int année;
     private int durée;
     private double budget;
+    private int nbHeures;
+    private  int nbHeuresRestantes;
     @ManyToOne
     @JoinColumn(name = "idDomaine")
     private Domaine domaine;
@@ -33,6 +35,7 @@ public class Formation {
     private Formateur formateur;
     @Column(length = 512)
     private String imageUrl;
+
     @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("formation")
     private List<Participation> participations;

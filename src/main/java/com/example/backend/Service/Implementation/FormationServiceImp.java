@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FormationServiceImp implements FormationService {
@@ -73,7 +74,12 @@ public class FormationServiceImp implements FormationService {
 
         return formationRepository.save(existingFormation);
     }
-
+    @Override
+    public void decremnter_nbHeuresRestantes(Long id,int val){
+        Formation existingFormation = getFormationById(id);
+        existingFormation.setNbHeuresRestantes(existingFormation.getNbHeuresRestantes() - val);
+        formationRepository.save(existingFormation);
+    }
     @Transactional
     @Override
     public void deleteFormation(Long id) {
@@ -88,4 +94,5 @@ public class FormationServiceImp implements FormationService {
         // Then delete the formation
         formationRepository.delete(formation);
     }
+
 }

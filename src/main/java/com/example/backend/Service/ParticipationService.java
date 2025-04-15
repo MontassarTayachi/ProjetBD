@@ -13,4 +13,5 @@ public interface ParticipationService {
     List<Participation> getParticipationsByParticipantId(Long participantId);
     List<Participation> getParticipationsByFormationId(Long formationId);
     List<Participation> getRecentParticipations(int limit);
+    void IncrnombreHeures(List<Long> ids,int value);
 }

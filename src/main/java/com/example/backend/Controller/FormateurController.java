@@ -1,11 +1,8 @@
 package com.example.backend.Controller;
 
-import com.example.backend.Model.Formateur;
-import com.example.backend.Model.Historique;
+import com.example.backend.Model.*;
 import com.example.backend.Security.JwtUtils;
-import com.example.backend.Service.EmployeurService;
-import com.example.backend.Service.FormateurService;
-import com.example.backend.Service.HistoriqueService;
+import com.example.backend.Service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,14 +17,19 @@ import java.util.List;
 @RequestMapping("/api/formateur")
 public class FormateurController {
     private final FormateurService formateurService;
-
+    private  final UserService userService;
+    private final  ParticipationService participationService;
+    private final FormationService formationService;
     @Autowired
     JwtUtils jwtUtils;
     @Autowired
     private HistoriqueService historiqueService;
     @Autowired
-    public FormateurController(FormateurService formateurService) {
+    public FormateurController(FormateurService formateurService,FormationService formationService ,UserService userService, ParticipationService participationService)  {
         this.formateurService = formateurService;
+        this.userService = userService;
+        this.participationService = participationService;
+        this.formationService = formationService;
     }
 
     @GetMapping("/getAll")
@@ -41,7 +43,18 @@ public class FormateurController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Formateur> createFormateur(HttpServletRequest request, @RequestBody Formateur formateur) {
+    public ResponseEntity<Formateur> createFormateur(
+            HttpServletRequest request,
+            @RequestBody Formateur formateur,
+            @RequestParam(value = "userlogin", required = true) String user_login,
+            @RequestParam(value = "userpassword", required = true) String user_password
+    ) {
+        Utilisateur newuser=new Utilisateur();
+        newuser.setLogin(user_login);
+        newuser.setPassword(user_password);
+        newuser.setRole(new Role(4L,null));
+        Utilisateur userInserted = userService.createUser(newuser);
+        formateur.setUtilisateur(userInserted);
         String userLogin = jwtUtils.getUsernameFromRequest(request);
        Formateur newFormateur = formateurService.createFormateur(formateur);
         historiqueService.createHistorique(
@@ -66,4 +79,23 @@ public class FormateurController {
         historiqueService.createHistorique(new Historique("Delete the formateur named  " + existingFormateur.getNom(), LocalDateTime.now(), userLogin));
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/take_attendance")
+    public ResponseEntity Take_Attendance(
+            HttpServletRequest request,
+            @RequestParam (required = true)  Long id_formation ,
+            @RequestParam(required = true) List<Long> ids_participants,
+            @RequestParam(required = true) int nb_heur
+            ){
+        Formation formation = formationService.getFormationById(id_formation);
+        if (formation.getNbHeuresRestantes()<nb_heur){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not enough hours available for this formation");
+        }
+        formationService.decremnter_nbHeuresRestantes(id_formation,nb_heur);
+        participationService.IncrnombreHeures(ids_participants,nb_heur);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("Formateur take attendance for formation " + formation.getTitre() + " and add " + nb_heur + " hours to participants", LocalDateTime.now(), userLogin));
+        return ResponseEntity.ok("Attendance taken successfully");
+
+    }
+
 }

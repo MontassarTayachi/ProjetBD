@@ -10,4 +10,5 @@ public interface FormationService {
     Formation createFormation(Formation formation);
     Formation updateFormation(Long id, Formation updatedFormation);
     void deleteFormation(Long id);
+    void decremnter_nbHeuresRestantes(Long id,int val);
 }
