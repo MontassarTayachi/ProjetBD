@@ -93,4 +93,8 @@ public class ParticipantServiceImp implements ParticipantService {
         // Then delete the participant
         participantRepository.delete(participant);
     }
+    @Override
+    public Long nb_participants() {
+        return participantRepository.count();
+    }
 }

@@ -69,4 +69,8 @@ public class FormateurServiceImp implements FormateurService {
 
         formateurRepository.delete(formateur);
     }
+    @Override
+    public Long nb_formateurs() {
+        return formateurRepository.count();
+    }
 }

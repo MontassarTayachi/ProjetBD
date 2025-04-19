@@ -49,6 +49,7 @@ public class SecurityConfig  {
                 .requestMatchers("/api/participant/**").permitAll()
                 .requestMatchers("/api/participations/**").permitAll()
                 .requestMatchers("/api/Historique").permitAll()
+                .requestMatchers("/api/dash/**").permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()

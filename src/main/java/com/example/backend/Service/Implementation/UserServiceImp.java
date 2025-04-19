@@ -53,4 +53,9 @@ public class UserServiceImp implements UserService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+
+    @Override
+    public Long nb_users() {
+        return userRepository.count();
+    }
 }

@@ -11,4 +11,6 @@ public interface FormationService {
     Formation updateFormation(Long id, Formation updatedFormation);
     void deleteFormation(Long id);
     void decremnter_nbHeuresRestantes(Long id,int val);
+    Long nb_formations();
+    List<Object[]> countFormationsByDomaine();
 }

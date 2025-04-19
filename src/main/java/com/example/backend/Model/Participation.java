@@ -13,6 +13,11 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"participant_id", "formation_id"})
+        }
+)
 public class Participation {
 
     @Id
@@ -21,13 +26,14 @@ public class Participation {
 
     @ManyToOne
     @JoinColumn(name = "participant_id")
-    @JsonIgnoreProperties({"formations", "structure", "profil", "participations"}) // ou "participations" si tu ajoutes cette relation
+    @JsonIgnoreProperties({"formations", "structure", "profil", "participations"})
     private Participant participant;
 
     @ManyToOne
     @JoinColumn(name = "formation_id")
     @JsonIgnoreProperties({"participants", "domaine", "formateur", "participations"})
     private Formation formation;
+
     private LocalDateTime date_inscription;
     private int nombreHeures;
 }

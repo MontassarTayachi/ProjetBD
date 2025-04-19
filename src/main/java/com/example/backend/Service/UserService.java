@@ -12,4 +12,5 @@ public interface UserService {
     Optional<Utilisateur> getUserById(Long id);
     Utilisateur updateUser(Long id, Utilisateur userDetails);
     void deleteUser(@PathVariable Long id);
+    Long nb_users();
 }

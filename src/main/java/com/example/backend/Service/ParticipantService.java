@@ -11,4 +11,5 @@ public interface ParticipantService {
     Participant createParticipant(Participant participant);
     Participant updateParticipant(Long id, Participant updatedParticipant);
     void deleteParticipant(Long id);
+    Long nb_participants();
 }

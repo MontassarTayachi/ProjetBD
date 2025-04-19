@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,8 +22,7 @@ public class Formation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String titre;
-    private int année;
-    private int durée;
+    private LocalDateTime année;
     private double budget;
     private int nbHeures;
     private  int nbHeuresRestantes;

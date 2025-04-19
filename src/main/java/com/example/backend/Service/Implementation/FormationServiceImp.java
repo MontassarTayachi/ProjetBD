@@ -68,10 +68,13 @@ public class FormationServiceImp implements FormationService {
         Formation existingFormation = getFormationById(id);
 
         if (updatedFormation.getTitre() != null) existingFormation.setTitre(updatedFormation.getTitre());
-        if (updatedFormation.getAnnée() != 0) existingFormation.setAnnée(updatedFormation.getAnnée());
-        if (updatedFormation.getDurée() != 0) existingFormation.setDurée(updatedFormation.getDurée());
+        if (updatedFormation.getAnnée() != null) existingFormation.setAnnée(updatedFormation.getAnnée());
         if (updatedFormation.getBudget() != 0) existingFormation.setBudget(updatedFormation.getBudget());
-
+        if (updatedFormation.getNbHeuresRestantes()!= 0) existingFormation.setNbHeuresRestantes(updatedFormation.getNbHeuresRestantes());
+        if(updatedFormation.getNbHeuresRestantes()!= 0) existingFormation.setNbHeuresRestantes(updatedFormation.getNbHeuresRestantes());
+        if(updatedFormation.getImageUrl()!= null) existingFormation.setImageUrl(updatedFormation.getImageUrl());
+        if (updatedFormation.getFormateur() != null) existingFormation.setFormateur(updatedFormation.getFormateur());
+        if (updatedFormation.getDomaine() != null) existingFormation.setDomaine(updatedFormation.getDomaine());
         return formationRepository.save(existingFormation);
     }
     @Override
@@ -93,6 +96,14 @@ public class FormationServiceImp implements FormationService {
 
         // Then delete the formation
         formationRepository.delete(formation);
+    }
+    @Override
+    public Long nb_formations() {
+        return formationRepository.count();
+    }
+    @Override
+    public List<Object[]> countFormationsByDomaine(){
+        return formationRepository.countFormationsByDomaine();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.backend.Service.Implementation;
 
+import com.example.backend.DTO.FormationCountDTO;
 import com.example.backend.Model.Participant;
 import com.example.backend.Model.Participation;
 import com.example.backend.Repository.FormationRepository;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -60,6 +62,31 @@ public class ParticipationServiceImp implements ParticipationService {
     @Override
     public List<Participation> getRecentParticipations(int limit) {
         return participationRepository.findRecentParticipations(limit);
+    }
+    @Override
+    public List<FormationCountDTO> countParticipationsByDomaine(){
+        return participationRepository.countParticipationsByDomaine();
+    }
+    @Override
+    public List<Object[]> countParticipationsByMonth(){
+        return participationRepository.countParticipationsByMonth();
+    }
+    @Override
+    public List<Object[]> countParticipationsByWeekDay(){
+        return participationRepository.countParticipationsByWeekDay();
+    }
+    @Override
+    public List<Object[]> countParticipationsByDayForLast30Days(){
+        return participationRepository.countParticipationsByDayForLast30Days();
+    }
+    public List<Object[]> getHighAttendanceMonthlyStats() {
+        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
+        return participationRepository.countHighAttendanceParticipationsByMonth(oneYearAgo);
+    }
+
+    public List<Object[]> getHighAttendanceDailyStats() {
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        return participationRepository.countHighAttendanceParticipationsByDay(thirtyDaysAgo);
     }
 
 }

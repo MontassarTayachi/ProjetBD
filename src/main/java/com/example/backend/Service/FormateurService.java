@@ -10,4 +10,5 @@ public interface FormateurService {
     Formateur createFormateur(Formateur formateur);
     Formateur updateFormateur(Long id, Formateur updatedFormateur);
     void deleteFormateur(Long id);
+    Long nb_formateurs();
 }
