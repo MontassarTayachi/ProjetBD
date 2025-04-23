@@ -19,6 +19,7 @@
     "@mui/x-data-grid": "^7.28.3",
     "axios": "^1.8.4",
     "formik": "^2.4.6",
+    "framer-motion": "^12.7.3",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.487.0",
     "react": "^19.1.0",

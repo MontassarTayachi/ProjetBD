@@ -1,67 +1,110 @@
-import Card from '../DashboardLayout/Card';
-import { FaUsers } from "react-icons/fa6";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { GrUserManager } from "react-icons/gr";
-import { RiAdminFill } from "react-icons/ri";
-import Overview from '../DashboardLayout/Overview';
-import RecentParticipants from '../DashboardLayout/RecentParticipants';
-import UniqueVisitorCard from '../DashboardLayout/UniqueVisitorCard';
-import ThemeCustomization from '../DashboardLayout/themes';
-import PieActiveArc from '../DashboardLayout/PieActiveArc';
-import SalesChart from '../DashboardLayout/SalesChart';
+import { FaUsers, FaChalkboardTeacher, FaUserTie, FaUserShield } from "react-icons/fa";
+import Card from "../DashboardLayout/Card";
+import Overview from "../DashboardLayout/Overview";
+import RecentParticipants from "../DashboardLayout/RecentParticipants";
+import UniqueVisitorCard from "../DashboardLayout/UniqueVisitorCard";
+import PieActiveArc from "../DashboardLayout/PieActiveArc";
+import SalesChart from "../DashboardLayout/SalesChart";
+import { useOutletContext } from "react-router-dom";
+import { dashService } from "./dashService";
+import { useEffect, useState } from 'react';
 
 export default function AdminDashboard() {
-  const recentUsers = [
-    { id: 1, name: "Alex Johnson", email: "alex@example.com", role: "Admin", joined: "2023-10-15" },
-    { id: 2, name: "Sarah Williams", email: "sarah@example.com", role: "Manager", joined: "2023-10-10" },
-    { id: 3, name: "Michael Brown", email: "michael@example.com", role: "Trainer", joined: "2023-10-05" }
-  ];
-  
-  return (
-    
-          <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
-           <Card
-            color="#4CAF50"
-            title="Total Users"
-            value={recentUsers.length}
-            icon={<FaUsers/>} // Replace with your desired icon
-          />
-          <Card
-            color="#2196F3"
-            title="Total Trainers"
-            value={recentUsers.filter(user => user.role === "Trainer").length}
-            icon={<FaChalkboardTeacher/>} // Replace with your desired icon
-          />
-          <Card
-            color="#FF9800"
-            title="Total Managers"
-            value={recentUsers.filter(user => user.role === "Manager").length}
-            icon={<GrUserManager/>} // Replace with your desired icon
-          />
-          <Card
-            color="#F44336"
-            title="Total Admins"
-            value={recentUsers.filter(user => user.role === "Admin").length}
-            icon={<RiAdminFill/>} // Replace with your desired icon
-          /> 
-          
-          </div>
-          
-          
-          <div className="flex justify-between p-4">
-          <UniqueVisitorCard />
-          <RecentParticipants/>
-          </div>
-          <ThemeCustomization><SalesChart /></ThemeCustomization>
-          <div className="flex justify-between p-4">
-          <Overview />
-          <PieActiveArc/>
-         
-          </div>
-          
+  const [dashboardData, setDashboardData] = useState({
+    data: {
+      total_formateurs: 0,
+      total_participants: 0,
+      total_users: 0,
+      total_formations: 0
+    },
+    actionLogs: []
+  });
+  const [loading, setLoading] = useState(true);
+  const { setCountLabel, setHeaderAddHandler } = useOutletContext();
 
-          </>
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [data, actionLogs] = await Promise.all([
+          dashService.getDashboardData(),
+          dashService.getActionLogs()
+        ]);
+        
+        setDashboardData({
+          data: data.data || {
+            total_formateurs: 0,
+            total_participants: 0,
+            total_users: 0,
+            total_formations: 0
+          },
+          actionLogs: actionLogs || []
+        });
+        
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    
+    // Set header context
+    setCountLabel("");
+    setHeaderAddHandler(null);
+  }, [setCountLabel, setHeaderAddHandler]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card
+          color="linear-gradient(to right, #947ebc, #d383ba)"
+          title="Total Users"
+          value={dashboardData.data.total_users}
+          icon={<FaUsers className="text-white" />}
+        />
+        <Card
+          color="linear-gradient(to right, #5f81c4, #d7eff7)"
+          title="Total Trainers"
+          value={dashboardData.data.total_formateurs}
+          icon={<FaChalkboardTeacher className="text-white" />}
+        />
+        <Card
+          color="linear-gradient(to right, #00808b, #afa8ba)"
+          title="Total Participants"
+          value={dashboardData.data.total_participants}
+          icon={<FaUserTie className="text-white" />}
+        />
+        <Card
+          color="linear-gradient(to right, #c27465, #fefedf)"
+          title="Total Formations"
+          value={dashboardData.data.total_formations}
+          icon={<FaUserShield className="text-white" />}
+        />
+
+
        
+      </div>
+
+      <div className="flex justify-between py-8 gap-6">
+        <UniqueVisitorCard />
+        <RecentParticipants />
+      </div>
+      
+      <SalesChart />
+      
+      <div className="flex justify-between py-8 gap-6">
+        <Overview actionLogs={dashboardData.actionLogs} />
+        <PieActiveArc />
+      </div>
+    </>
   );
 }

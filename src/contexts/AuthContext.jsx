@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     authLogout();
     setUser(null);
+    setIsAuthenticated(false);  // Add this to maintain consistent state    
   };
 
   return (

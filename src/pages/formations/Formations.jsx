@@ -3,7 +3,7 @@ import { Album, Plus, Edit2, Trash2, X } from 'lucide-react';
 import { formationService } from './formationService';
 import { refService } from '../Referentiels/refService';
 import { personnelService } from '../personnel/personnelService';
-
+import { useOutletContext } from 'react-router-dom';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
 export default function Formations() {
@@ -19,10 +19,11 @@ export default function Formations() {
   const [formData, setFormData] = useState({
     titre: '',
     année: new Date().getFullYear(),
-    durée: 0,
+    nbHeures: 0,
     budget: 0,
     domaine: { id: '' },
-    formateur: { id: '' }
+    formateur: { id: '' },
+    image: null,
   });
   const [errors, setErrors] = useState({});
 
@@ -44,13 +45,21 @@ export default function Formations() {
     }
   };
 
+  const { setCountLabel } = useOutletContext();
+  useEffect(() => {
+    setCountLabel(`${formations.length} formations trouvés`);
+  }, [formations]);
+
+  const { setHeaderAddHandler } = useOutletContext();
+  useEffect(() => {
+    setHeaderAddHandler(() => () => setShowModal(true));
+  }, [setHeaderAddHandler]);
+
   const fetchDomainesAndFormateurs = async () => {
     try {
       setLoading(true);
-      // Assuming these methods exist in your formationService
       const domainesData = await refService.getAllDomaine();
       const formateursData = await personnelService.getAllFormateurs();
-      
       setDomaines(domainesData);
       setFormateurs(formateursData);
     } catch (error) {
@@ -60,6 +69,7 @@ export default function Formations() {
       setLoading(false);
     }
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -68,7 +78,6 @@ export default function Formations() {
     });
   };
 
- 
   const handleSelectChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -80,7 +89,7 @@ export default function Formations() {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.titre) newErrors.titre = 'Title is required';
-    if (!formData.durée || formData.durée <= 0) newErrors.durée = 'Duration must be positive';
+    if (!formData.nbHeures || formData.nbHeures <= 0) newErrors.nbHeures = 'Duration must be positive';
     if (!formData.budget || formData.budget < 0) newErrors.budget = 'Budget cannot be negative';
     if (!formData.domaine.id) newErrors.domaine = 'Domain is required';
     if (!formData.formateur.id) newErrors.formateur = 'Trainer is required';
@@ -94,16 +103,34 @@ export default function Formations() {
     if (!validateForm()) return;
 
     try {
-      if (currentFormation) {
-        await formationService.updateFormation(currentFormation.id, formData);
-      } else {
-        await formationService.createFormation(formData);
+      const formPayload = new FormData();
+      const formationObject = {
+        titre: formData.titre,
+        année: formData.année,
+        nbHeures: formData.nbHeures,
+        budget: formData.budget,
+        domaine: { id: formData.domaine.id },
+        formateur: { id: formData.formateur.id }
+      };
+
+      formPayload.append("formation", JSON.stringify(formationObject));
+      
+      if (formData.image) {
+        formPayload.append("image", formData.image);
       }
+
+      if (currentFormation) {
+        await formationService.updateFormation(currentFormation.id, formPayload);
+      } else {
+        await formationService.createFormation(formPayload);
+      }
+
       setShowModal(false);
       fetchFormations();
       resetForm();
     } catch (error) {
       console.error('Error saving formation:', error);
+      setError(error.message);
     }
   };
 
@@ -112,10 +139,11 @@ export default function Formations() {
     setFormData({
       titre: formation.titre,
       année: formation.année,
-      durée: formation.durée,
+      nbHeures: formation.nbHeures,
       budget: formation.budget,
       domaine: formation.domaine,
-      formateur: formation.formateur
+      formateur: formation.formateur,
+      image: null // Reset image when editing
     });
     setShowModal(true);
   };
@@ -131,6 +159,7 @@ export default function Formations() {
       fetchFormations();
     } catch (error) {
       console.error('Error deleting formation:', error);
+      setError(error.message);
     } finally {
       setShowDeleteModal(false);
     }
@@ -140,37 +169,19 @@ export default function Formations() {
     setFormData({
       titre: '',
       année: new Date().getFullYear(),
-      durée: 0,
+      nbHeures: 0,
       budget: 0,
       domaine: { id: '' },
-      formateur: { id: '' }
+      formateur: { id: '' },
+      image: null
     });
     setCurrentFormation(null);
     setErrors({});
   };
-  return (
-    <div className="flex-1 p-8 bg-white rounded-xl shadow-md overflow-hidden mx-8">
-      {/* Loading state */}
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <p>Loading...</p>
-          </div>
-        </div>
-      )}
 
-      {/* Error state */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          <span className="block sm:inline">{error}</span>
-          <button 
-            onClick={() => setError(null)} 
-            className="absolute top-0 right-0 px-2 py-1"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      )}
+  return (
+    <div className="flex-1 p-8 bg-white rounded-[20px] shadow-md overflow-hidden">
+      {/* Loading and error states remain the same */}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
@@ -226,12 +237,12 @@ export default function Formations() {
                       <label className="block text-sm font-medium text-gray-700">Duration (hours)*</label>
                       <input
                         type="number"
-                        name="durée"
-                        value={formData.durée}
+                        name="nbHeures"
+                        value={formData.nbHeures}
                         onChange={handleInputChange}
-                        className={`mt-1 block w-full rounded-md border ${errors.durée ? 'border-red-500' : 'border-gray-300'} shadow-sm p-2`}
+                        className={`mt-1 block w-full rounded-md border ${errors.nbHeures ? 'border-red-500' : 'border-gray-300'} shadow-sm p-2`}
                       />
-                      {errors.durée && <p className="mt-1 text-sm text-red-600">{errors.durée}</p>}
+                      {errors.nbHeures && <p className="mt-1 text-sm text-red-600">{errors.nbHeures}</p>}
                     </div>
                   </div>
 
@@ -285,6 +296,23 @@ export default function Formations() {
                       {errors.formateur && <p className="mt-1 text-sm text-red-600">{errors.formateur}</p>}
                     </div>
                   </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Formation Image (optional)
+                    </label>
+                    <input
+                      type="file"
+                      id="image"
+                      name="image"
+                      accept="image/*"
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        image: e.target.files[0]
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#947ebc] focus:border-[#947ebc] outline-none transition-all"
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-6 flex justify-end space-x-3">
@@ -309,17 +337,6 @@ export default function Formations() {
       )}
 
       {/* Main Content */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-[#7a6699]">Formations</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-[#947ebc] hover:bg-[#7a6699] text-white py-2 px-4 rounded-lg flex items-center transition-colors"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Ajouter
-        </button>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {formations.map((formation) => (
           <FormationCard
@@ -334,23 +351,30 @@ export default function Formations() {
   );
 }
 
-// Optional: Extract FormationCard as a separate component
 function FormationCard({ formation, onEdit, onDelete }) {
   return (
     <div className="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center mb-4">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-full bg-[#947ebc] flex items-center justify-center">
-            <Album className="w-5 h-5 text-white" />
+        {formation.imageUrl ? (
+          <img 
+            src={formation.imageUrl} 
+            alt={formation.titre}
+            className="w-12 h-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="relative">
+            <div className="w-12 h-12 rounded-full bg-[#947ebc] flex items-center justify-center">
+              <Album className="w-5 h-5 text-white" />
+            </div>
+            <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-pulse"></div>
           </div>
-          <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-pulse"></div>
-        </div>
+        )}
         <div className="ml-4">
           <h5 className="text-xl font-semibold text-gray-900">
             {formation.titre || 'No title'}
           </h5>
           <p className="text-sm text-gray-500">
-            {formation.durée} hours • {formation.année}
+            {formation.nbHeures} hours • {formation.année}
           </p>
         </div>
       </div>

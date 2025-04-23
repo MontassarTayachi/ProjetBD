@@ -1,5 +1,6 @@
 import React from "react";
-import { Avatar, Box, Typography, List, ListItem, ListItemAvatar, ListItemText, Paper } from "@mui/material";
+import { Box, Typography, List, ListItem, ListItemAvatar, ListItemText, Paper, Button, Avatar ,Link } from "@mui/material";
+import { ArrowRight } from "@mui/icons-material";
 
 const RecentParticipants = () => {
     const recentParticipants = [
@@ -16,50 +17,124 @@ const RecentParticipants = () => {
         return parts.map(p => p[0].toUpperCase()).join("").substring(0, 2);
     };
 
+    const getRandomColor = () => {
+        const colors = [
+            "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            "linear-gradient(135deg, #ec4899, #f43f5e)",
+            "linear-gradient(135deg, #10b981, #14b8a6)",
+            "linear-gradient(135deg, #f59e0b, #f97316)",
+            "linear-gradient(135deg, #3b82f6, #0ea5e9)"
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    };
+
     return (
         <Paper
-            elevation={3}
+            elevation={0}
             sx={{
-                backgroundColor: "#ffffff", // Fond clair
-                color: "#1f2937", // Texte foncé
-                padding: 2,
-                borderRadius: 1,
-                width: 450,
-                height: 585,
-                overflow: "auto",
-                border: "1px solid #e5e7eb", // Légère bordure
+                backgroundColor: "#ffffff",
+                padding: 3,
+                borderRadius: 4,
+                width: "100%",
+                maxWidth: 420,
+                height: "auto",
+                overflow: "hidden",
+                border: "1px solid #f3f4f6",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
             }}
         >
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1, color: "#947ebc" }}>
-                Participants Récents
-            </Typography>
-            <Typography variant="body2" sx={{ color: "#4b5563", mb: 2 }}>
-                {recentParticipants.length} participants ont rejoint récemment.
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                <Typography variant="h6" sx={{ 
+                    fontWeight: 700, 
+                    color: "#1f2937",
+                    fontFamily: "'Poppins', sans-serif",
+                    letterSpacing: "0.5px"
+                }}>
+                    Recent Participants
+                </Typography>
+                <Link
+                    href="#"
+                    underline="none"
+                    sx={{
+                        color: "#9ca3af",
+                        fontSize: "0.875rem",
+                        "&:hover": { color: "#6b7280" }
+                    }}
+                >
+                    View All
+                </Link>
+            </Box>
 
-            <List>
+            
+
+            <List sx={{ p: 0 }}>
                 {recentParticipants.map((participant) => (
-                    <ListItem key={participant.id} sx={{ paddingLeft: 0, paddingRight: 0 }}>
+                    <ListItem 
+                        key={participant.id} 
+                        sx={{ 
+                            p: 1, 
+                            mb: 1, 
+                            borderRadius: 3,
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                                backgroundColor: '#f9fafb',
+                                transform: 'translateX(4px)'
+                            }
+                        }}
+                    >
                         <ListItemAvatar>
-                            <Avatar sx={{ bgcolor: "#947ebc", color: "#ffffff", fontWeight: "500", fontFamily: "cursive" }}>
+                            <Avatar 
+                                sx={{ 
+                                    width: 48, 
+                                    height: 48, 
+                                    mr: 2,
+                                    bgcolor: '#f3f4f6',
+                                    color: '#1f2937',
+                                    fontWeight: 600,
+                                    fontSize: 16,
+                                    fontFamily: "'Inter', sans-serif"
+                                }}
+                            >
                                 {getInitials(participant.name)}
                             </Avatar>
                         </ListItemAvatar>
                         <ListItemText
                             primary={
-                                <Typography sx={{ color: "#1f2937", fontWeight: 600,fontFamily: "Poppins" }}>
+                                <Typography sx={{ 
+                                    color: "#1f2937", 
+                                    fontWeight: 600,
+                                    fontFamily: "'Inter', sans-serif",
+                                    fontSize: 15,
+                                    mb: 0.5
+                                }}>
                                     {participant.name}
                                 </Typography>
                             }
                             secondary={
-                                <Typography sx={{ color: "#6b7280", fontFamily: "Poppins" }}>
+                                <Typography sx={{ 
+                                    color: "#6b7280", 
+                                    fontFamily: "'Inter', sans-serif",
+                                    fontSize: 13,
+                                    fontWeight: 400
+                                }}>
                                     {participant.email}
                                 </Typography>
                             }
                         />
-                        <Typography variant="body2" sx={{ color: "#947ebc", fontWeight: "bold" }}>
+                        <Box sx={{
+                            background: getRandomColor(),
+                            color: 'white',
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: 12,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            fontFamily: "'Inter', sans-serif",
+                            minWidth: 70,
+                            textAlign: 'center'
+                        }}>
                             {participant.dateJoined}
-                        </Typography>
+                        </Box>
                     </ListItem>
                 ))}
             </List>

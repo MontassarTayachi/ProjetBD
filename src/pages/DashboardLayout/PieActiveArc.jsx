@@ -9,12 +9,13 @@ export default function PieActiveArc() {
     elevation={3}
     sx={{
       backgroundColor: "#ffffff",
-      color: "#1f2937",
-      padding: 2,
-      borderRadius: 2,
+                padding: 3,
+                borderRadius: 4,
       width: 300,
-      height: 570,
-      border: "1px solid #e5e7eb",
+      height: "auto",
+      overflow: "hidden",
+      border: "1px solid #f3f4f6",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.05)",  
     }}
   >
     <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>

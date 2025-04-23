@@ -17,17 +17,21 @@ export default function UniqueVisitorCard() {
         elevation={3}
         sx={{
           backgroundColor: "#ffffff",
-          color: "#1f2937",
-          padding: 2,
-          borderRadius: 2,
+                padding: 3,
+                borderRadius: 4,
           width: 700,
           height: 585,
-          border: "1px solid #e5e7eb",
-        }}
+          height: "auto",
+          overflow: "hidden",
+          border: "1px solid #f3f4f6",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.05)",        }}
       >
       <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
         <Grid item>
-          <Typography sx={{ fontWeight: "bold", color: "#947ebc" }} variant="h6">Unique Visitor</Typography>
+          <Typography sx={{  fontWeight: 700, 
+                    color: "#1f2937",
+                    fontFamily: "'Poppins', sans-serif",
+                    letterSpacing: "0.5px" }} variant="h6">Unique Visitor</Typography>
         </Grid>
         <Grid item>
           <Stack direction="row" spacing={1}>

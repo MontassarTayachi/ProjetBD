@@ -23,14 +23,20 @@ getAllFormation: async () => {
     }
   },
 
+ 
   createFormation: async (fromationData) => {
     try {
-      const response = await api.post('/formation/add', fromationData);
+      const response = await api.post('/formation/add', fromationData ,{
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data;
     } catch (error) {
+      console.error(error);
       throw new Error(`Failed to create user: ${error.message}`);
     }
-  },
+  } ,
 
   updateFormation: async (id, fromationData) => {
     try {

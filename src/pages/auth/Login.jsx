@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import image from '../../assets/calender.png';
 import logo from '../../assets/logo.png';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Import des icônes
+import { Eye, EyeOff } from 'lucide-react'; // Import eye icons from Lucide
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion'; // 👈 Import Framer Motion
+
 const Login = () => {
     const [formData, setFormData] = useState({ login: '', password: '' });
     const [error, setError] = useState('');
@@ -48,15 +50,23 @@ const Login = () => {
             </div>
             <div className="h-screen bg-gray-50">
                 <main className="container mx-auto flex flex-col md:flex-row items-center">
-                    <div className="relative mb-12 md:mb-0 md:w-1/2 flex justify-center">
-                        <div className="relative w-64 h-64 sm:w-[650px] sm:h-[650px]">
+                <motion.div
+            className="relative mb-12 md:mb-0 md:w-1/2 justify-center hidden sm:flex"
+            initial={{ y: 0 }}
+            animate={{ y: [0, -10, 0] }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >                        <div className="relative w-64 h-64 sm:w-[650px] sm:h-[650px]">
                             <img
                                 src={image}
                                 alt="Login"
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                    </div>
+          </motion.div>
 
                     <div className="md:w-1/2 max-w-md">
                         <div className="bg-white p-8 rounded-xl shadow-lg">
@@ -97,12 +107,11 @@ const Login = () => {
                                             type="button"
                                             onClick={togglePasswordVisibility}
                                             className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-indigo-500 transition"
-                                        >
-                                            {showPassword ? (
-                                                <FaEyeSlash className="h-5 w-5" />
-                                            ) : (
-                                                <FaEye className="h-5 w-5" />
-                                            )}
+                                        > {showPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
                                         </button>
                                     </div>
                                 </div>

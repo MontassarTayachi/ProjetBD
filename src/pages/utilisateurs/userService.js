@@ -2,10 +2,24 @@ import axios from 'axios';
 
 import api from '../../api/axios'; // Import the axios instance with interceptors
 
-// Create axios instance with base config
 
 export const userService = {
+
   // User CRUD operations
+  createUser: async (formData) => {
+    try {
+      const response = await api.post('/user/add', formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error; // Just rethrow original error object
+    }
+  } ,
+  
   getAllUsers: async () => {
     try {
       const response = await api.get('/user');
@@ -19,19 +33,13 @@ export const userService = {
     try {
       const response = await api.get(`/${id}`);
       return response.data;
+    
     } catch (error) {
       throw new Error(`Failed to fetch user: ${error.message}`);
     }
   },
 
-  createUser: async (userData) => {
-    try {
-      const response = await api.post('/user/addUser', userData);
-      return response.data;
-    } catch (error) {
-      throw new Error(`Failed to create user: ${error.message}`);
-    }
-  },
+ 
 
   updateUser: async (id, userData) => {
     try {

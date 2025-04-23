@@ -13,14 +13,16 @@ const adminMenu = [
 
 export default function AdminLayout() {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className=" bg-gray-50">
+          <div class="">  
+
       <Sidebar menuItems={adminMenu} />
-      
+      </div>
       <div className="flex-1 overflow-hidden">
         <Header />
-        <main className="p-6">
-          <Outlet /> {/* This will render the matched child route */}
-        </main>
+        <div class="min-h-screen bg-gray-50 flex ml-54">
+        <Outlet /> {/* This will render the matched child route */}
+        </div>
       </div>
     </div>
   );
