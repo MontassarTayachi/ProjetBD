@@ -11,13 +11,14 @@ export default function Home() {
 
   useEffect(() => {
     if (loading) return;
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       const role = user.role;
       if (role === "ROLE_ADMIN") setDistnation("/admin/dash");
       else if (role === "ROLE_RESPONSABLE") setDistnation("/manager");
       else if (role === "ROLE_USER") setDistnation("/user/formation");
     }
   }, [isAuthenticated, user, loading]);
+  
 
   return (
     <>

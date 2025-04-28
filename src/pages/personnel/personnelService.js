@@ -140,4 +140,15 @@ getAllFormateurs: async () => {
       throw new Error(`Failed to delete user: ${error.message}`);
     }
   },
+
+  //--------------- Participation ------------------
+  createParticipation: async (participantData) => {
+    try {
+      console.log(participantData)
+      const response = await api.post('/participations', participantData);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
+  },
 };

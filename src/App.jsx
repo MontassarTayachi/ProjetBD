@@ -9,6 +9,8 @@ import Formations from './pages/formations/Formations';
 import Referentiels from './pages/Referentiels/Referentiels';
 import AppLayout from './pages/dashboard/AppLayout'; // Import the unified layout
 import './App.css';
+import Formation from './pages/Formateur-dash/Formations/Formation';
+import Participation from './pages/Formateur-dash/Participation/Participation';
 
 function App() {
   return (
@@ -26,13 +28,15 @@ function App() {
             <Route path="/admin/formation" element={<Formations />} />
             <Route path="/admin/personnel" element={<Personnel />} />
             
+
+            
           </Route>
         </Route>
         
-        {/* Manager Routes */}
+        {/* responsable Routes */}
         <Route element={<ProtectedRoute roles={['ROLE_RESPONSABLE']} />}>
-          <Route element={<AppLayout role="manager" />}>
-            <Route path="/manager" element={<AdminDashboard />} />
+          <Route element={<AppLayout role="responsable" />}>
+            <Route path="/responsable" element={<AdminDashboard />} />
           </Route>
         </Route>
         
@@ -43,7 +47,16 @@ function App() {
             <Route path="/user/personnel" element={<Personnel />} />
           </Route>
         </Route>
+
+        {/* Formateur Routes */}
+        <Route element={<ProtectedRoute roles={['ROLE_FORMATEUR']} />}>
+          <Route element={<AppLayout role="formateur" />}>
+          <Route path="/formateur/participations" element={<Formation />} />
+          <Route path="/formateur/participations/:formationId" element={<Participation />} />
+          </Route>
+        </Route>
       </Routes>
+      
     </BrowserRouter>
   );
 }

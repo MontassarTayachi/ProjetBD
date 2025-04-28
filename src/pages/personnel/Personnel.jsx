@@ -12,8 +12,12 @@ import { personnelService } from "./personnelService";
 import { formationService } from "../formations/formationService";
 import Box from "@mui/material/Box";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import FormationsPopUp from "./FormationPopup";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useOutletContext } from "react-router-dom";
+import ActionsDropdown from "../../components/ActionsDropdown";
+import FormationsPopup from "./FormationPopup";
+import FormationPopup from "./FormationPopup";
 
 export default function Personnel() {
   const [activeTab, setActiveTab] = useState("employeurs");
@@ -28,8 +32,10 @@ export default function Personnel() {
   const [employeurs, setEmployeurs] = useState([]);
   const [formateurs, setFormateurs] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [showFormationsPopUp, setShowFormationsPopUp] = useState(false);
+  const [selectedFormationId, setSelectedFormationId] = useState(null);
   const [formations, setFormations] = useState([]);
-
+  
   // Form states
   const [formData, setFormData] = useState({
     // Common fields
@@ -46,7 +52,8 @@ export default function Personnel() {
     nomemployeur: "",
   });
   const [errors, setErrors] = useState({});
-
+  const [showFormationsModal, setShowFormationsModal] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
   useEffect(() => {
     fetchData();
     console.log(employeurs);
@@ -197,7 +204,6 @@ export default function Personnel() {
       prenom: item.prenom || "",
       email: item.email || "",
       tel: item.tel || "",
-      formations: item.formations || [],
       type: item.type || "Indépendant",
       employeur: item.employeur || { id: "" },
       nomemployeur: item.nomemployeur || "",
@@ -238,7 +244,8 @@ export default function Personnel() {
           <div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
-                Employer Name*
+                Nom de l'employeur
+                <span class="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -262,7 +269,8 @@ export default function Personnel() {
           <div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
-                Type*
+                Type
+                <span class="text-red-500">*</span>
               </label>
               <select
                 name="type"
@@ -281,7 +289,8 @@ export default function Personnel() {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
-                Employer
+                Employeur
+                <span class="text-red-500">*</span>
               </label>
               <select
                 name="employeur"
@@ -299,29 +308,7 @@ export default function Personnel() {
             </div>
           </div>
         );
-      case "participants":
-        return (
-          <div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Formations (IDs comma separated)
-              </label>
-              <select
-                name="formations"
-                value={formData.formations.id}
-                onChange={handleSelectChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
-              >
-                <option value="">Select Formation</option>
-                {formations.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.titre}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        );
+      
       default:
         return null;
     }
@@ -468,6 +455,21 @@ export default function Personnel() {
       width: 150,
     },
     {
+      field: "actions",
+      headerName: "Actions",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+      renderCell: (params) => (
+        <ActionsDropdown
+          onEdit={() => handleEdit(params.row)}
+          onDelete={() => handleDeleteClick(params.row.id)}
+          onAddFormations={() => {
+            setShowFormationsPopUp(true);
+          }}
+        />
+      ),
+    },
+    /*{
       field: "formations",
       headerName: "Formations",
       headerClassName: "super-app-theme--header",
@@ -494,7 +496,7 @@ export default function Personnel() {
           </button>
         </div>
       ),
-    },
+    },*/
   ];
 
   return (
@@ -530,7 +532,13 @@ export default function Personnel() {
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
-
+       {/* Formations Modal */}
+       {showFormationsPopUp && (
+              <FormationPopup
+                formations={formations}
+                onClose={() => setShowFormationsPopUp(false)}
+              />
+            )}
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
@@ -550,112 +558,116 @@ export default function Personnel() {
                   onClick={() => {
                     setShowModal(false);
                     resetForm();
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  </div>
 
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  {activeTab !== "employeurs" && (
+                  <form onSubmit={handleSubmit}>
+                  <div className="space-y-4">
+                    {activeTab !== "employeurs" && (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            First Name*
-                          </label>
-                          <input
-                            type="text"
-                            name="prenom"
-                            value={formData.prenom}
-                            onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Last Name*
-                          </label>
-                          <input
-                            type="text"
-                            name="nom"
-                            value={formData.nom}
-                            onChange={handleInputChange}
-                            className={`mt-1 block w-full rounded-md border ${
-                              errors.nom ? "border-red-500" : "border-gray-300"
-                            } shadow-sm p-2`}
-                          />
-                          {errors.nom && (
-                            <p className="mt-1 text-sm text-red-600">
-                              {errors.nom}
-                            </p>
-                          )}
-                        </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                        Prénom
+                        <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                        type="text"
+                        name="prenom"
+                        value={formData.prenom}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Email*
+                        Nom
+                        <span class="text-red-500">*</span>
                         </label>
                         <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className={`mt-1 block w-full rounded-md border ${
-                            errors.email ? "border-red-500" : "border-gray-300"
-                          } shadow-sm p-2`}
+                        type="text"
+                        name="nom"
+                        value={formData.nom}
+                        onChange={handleInputChange}
+                        className={`mt-1 block w-full rounded-md border ${
+                          errors.nom ? "border-red-500" : "border-gray-300"
+                        } shadow-sm p-2`}
                         />
-                        {errors.email && (
-                          <p className="mt-1 text-sm text-red-600">
-                            {errors.email}
-                          </p>
+                        {errors.nom && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.nom}
+                        </p>
                         )}
                       </div>
+                      </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Phone
-                        </label>
-                        <input
-                          type="tel"
-                          name="tel"
-                          value={formData.tel}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
-                        />
+                      <label className="block text-sm font-medium text-gray-700">
+                        Email
+                        <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={`mt-1 block w-full rounded-md border ${
+                        errors.email ? "border-red-500" : "border-gray-300"
+                        } shadow-sm p-2`}
+                      />
+                      {errors.email && (
+                        <p className="mt-1 text-sm text-red-600">
+                        {errors.email}
+                        </p>
+                      )}
+                      </div>
+                      <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Téléphone
+                        <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        name="tel"
+                        value={formData.tel}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
+                      />
                       </div>
                     </>
-                  )}
+                    )}
 
-                  {renderFormFields()}
-                </div>
+                    {renderFormFields()}
+                  </div>
 
-                <div className="mt-6 flex justify-end space-x-3">
-                  <button
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
                     type="button"
                     onClick={() => {
                       setShowModal(false);
                       resetForm();
                     }}
                     className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
+                    >
+                    Annuler
+                    </button>
+                    <button
                     type="submit"
                     className="px-4 py-2 text-white bg-[#7a6699] rounded-md hover:bg-[#947ebc]"
-                  >
-                    {currentItem ? "Update" : "Create"}
-                  </button>
+                    >
+                    {currentItem ? "Mettre à jour" : "Créer"}
+                    </button>
+                  </div>
+                  </form>
                 </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+                </div>
+              </div>
+              )}
 
-      {/* Tabs */}
+              {/* Tabs */}
       <div className="mb-6 border-b border-gray-200 mt-0">
         <nav className="-mb-px flex space-x-8">
           <button
@@ -668,6 +680,7 @@ export default function Personnel() {
           >
             <Briefcase className="w-4 h-4 mr-2" />
             Employeurs
+            
           </button>
           <button
             onClick={() => setActiveTab("formateurs")}

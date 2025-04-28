@@ -8,7 +8,7 @@ import { motion } from 'framer-motion'; // 👈 Import Framer Motion
 
 const Login = () => {
     const [formData, setFormData] = useState({ login: '', password: '' });
-    const [error, setError] = useState('');
+    const [error, setError] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
@@ -16,26 +16,63 @@ const Login = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+    
+        // Clear that field's error when user types
+        if (error[name]) {
+            setError((prevErrors) => {
+                const updatedErrors = { ...prevErrors };
+                delete updatedErrors[name];
+                return updatedErrors;
+            });
+        }
+    };
+    
+
+    const validateForm = () => {
+        const errors = {};
+
+        if (!formData.login.trim()) {
+            errors.login = 'Login est requis';
+        }
+
+        if (!formData.password.trim()) {
+            errors.password = 'Mot de passe est requis';
+        }
+
+        return errors;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const errors = validateForm();
+        if (Object.keys(errors).length > 0) {
+            setError(errors);
+            return;
+        }
+        setError({}); // clear errors if valid
+
+
         try {
             const response = await login(formData);
-            console.log(response)
-            console.log(response.role)
+            console.log(response);
+            console.log(response.role);
             if (response.data.role === 'ROLE_ADMIN') {
                 navigate('/admin/dash');
             } else if (response.data.role === 'ROLE_RESPONSABLE') {
-                navigate('/manager');
+                navigate('/responsable');
             } else if (response.data.role === 'ROLE_USER') {
-              navigate('/user/formation');
-            }else {
+                navigate('/user/formation');
+            } else if (response.data.role === 'ROLE_FORMATEUR') {
+                navigate('/formateur/participations');
+            } else {
                 navigate('/login');
             }
         } catch (error) {
-            console.log(error);
-            setError(error.message || 'Something went wrong');
+            if (error.response?.status === 401) {
+                setError({ general: 'Identifiants invalides' }); // show invalid credentials
+              } else {
+                setError({ general: 'Une erreur est survenue' });
+              }
         }
     };
 
@@ -63,7 +100,7 @@ const Login = () => {
                             <img
                                 src={image}
                                 alt="Login"
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover rounded-full"
                             />
                         </div>
           </motion.div>
@@ -84,8 +121,9 @@ const Login = () => {
                                         type="text"
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                                         placeholder="your@email.com"
-                                        required
+                                        
                                     />
+                                    {error.login && <p className="text-red-500 text-sm mt-2">{error.login}</p>}
                                 </div>
 
                                 <div className="space-y-2 relative">
@@ -100,9 +138,9 @@ const Login = () => {
                                             type={showPassword ? "text" : "password"}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition pr-12"
                                             placeholder="••••••••"
-                                            required
+                                            
                                         />
-                                        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                                        {error.password && <p className="text-red-500 text-sm mt-2">{error.password}</p>}
                                         <button
                                             type="button"
                                             onClick={togglePasswordVisibility}
@@ -115,6 +153,8 @@ const Login = () => {
                                         </button>
                                     </div>
                                 </div>
+
+                                {error.general && <p className="text-red-500 text-sm mt-2">{error.general}</p>}
 
                                 <button
                                     type="submit"

@@ -2,76 +2,73 @@ import React from "react";
 import { Box, Typography, Paper } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 
-const Overview = () => {
-  const recentActions = [
-    {
-      id: 1,
-      date: "15/08/2014",
-      user: "montassar50",
-      action: "Ajouté un participant",
-    },
-    {
-      id: 2,
-      date: "15/08/2014",
-      user: "montassar50",
-      action: "Ajouté un participant",
-    },
-    {
-      id: 3,
-      date: "15/08/2014",
-      user: "montassar50",
-      action: "Ajouté un participant",
-    },
-    {
-      id: 4,
-      date: "16/08/2014",
-      user: "johndoe",
-      action: "Supprimé un fichier",
-    },
-    {
-      id: 5,
-      date: "17/08/2014",
-      user: "janedoe",
-      action: "Mis à jour un document",
-    },
-    {
-      id: 6,
-      date: "18/08/2014",
-      user: "alexsmith",
-      action: "Ajouté un participant",
-    },
-    {
-      id: 7,
-      date: "19/08/2014",
-      user: "sarahconnor",
-      action: "Supprimé un fichier",
-    },
-  ];
+const Overview = ({ recentActions }) => {
+  const getRandomColor = () => {
+    const colors = [
+      "linear-gradient(135deg, #6366f1, #8b5cf6)",
+      "linear-gradient(135deg, #ec4899, #f43f5e)",
+      "linear-gradient(135deg, #10b981, #14b8a6)",
+      "linear-gradient(135deg, #f59e0b, #f97316)",
+      "linear-gradient(135deg, #3b82f6, #0ea5e9)",
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
+  // Format date to day/month/year
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   const columns = [
     {
       field: "id",
       headerName: "ID",
-      width: 60,
+      width: 80,
+      headerClassName: "super-app-theme--header",
+    },
+    {
+      field: "utilisateur",
+      headerName: "Utilisateur",
+      width: 150,
+      headerClassName: "super-app-theme--header",
+      renderCell: (params) => params.row.utilisateur || "N/A",
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      width: 270,
       headerClassName: "super-app-theme--header",
     },
     {
       field: "date",
       headerName: "Date",
-      width: 120,
-      headerClassName: "super-app-theme--header",
-    },
-    {
-      field: "user",
-      headerName: "Utilisateur",
       width: 150,
       headerClassName: "super-app-theme--header",
-    },
-    {
-      field: "action",
-      headerName: "Action",
-      flex: 1,
-      headerClassName: "super-app-theme--header",
+      renderCell: (params) => (
+        <Box
+          sx={{
+            background: getRandomColor(),
+            color: 'white',
+            px: 1.5,
+            py: 0.25,
+            borderRadius: 12,
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: "'Inter', sans-serif",
+            minWidth: 70,
+            textAlign: 'center',
+            lineHeight: '1.25'
+
+          }}
+        >
+          {formatDate(params.row.date)}
+        </Box>
+      ),
     },
   ];
 
@@ -98,7 +95,6 @@ const Overview = () => {
           letterSpacing: "0.5px",
         }}
       >
-        {" "}
         Actions Récentes
       </Typography>
       <Typography variant="body2" sx={{ color: "#4b5563", mb: 2 }}>
@@ -139,6 +135,11 @@ const Overview = () => {
             },
             ".MuiDataGrid-selectedRowCount": {
               visibility: "hidden",
+            },
+            // Align cell content vertically center
+            ".MuiDataGrid-cell--textLeft": {
+              display: "flex",
+              alignItems: "center",
             },
           }}
         />

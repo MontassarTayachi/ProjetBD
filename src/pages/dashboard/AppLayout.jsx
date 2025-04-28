@@ -35,7 +35,7 @@ const menuConfig = {
       path: "/admin/personnel",
     },
   ],
-  manager: [
+  responsable: [
     {
       icon: <LayoutDashboard size={20} />,
       text: "Tableau de Bord",
@@ -48,7 +48,18 @@ const menuConfig = {
       text: "Formation",
       path: "/user/formation",
     },
-    { icon: <UserCog size={20} />, text: "Personnel", path: "/user/personnel" },
+    {
+      icon: <UserCog size={20} />,
+      text: "Personnel",
+      path: "/user/personnel",
+    },
+  ],
+  formateur: [
+    {
+      icon: <GraduationCap size={20} />,
+      text: "Formation",
+      path: "/formateur/formation",
+    },
   ],
 };
 
@@ -56,9 +67,16 @@ const routeTitles = {
   "/admin/users": "Gestion des Utilisateurs",
   "/admin/references": "Gestion des Referentiels",
   "/admin/formation": "Dashboard - Formations",
-  "/admin/personnel": "Dashboard - Personnel",
   "/admin/dash": "Dashboard",
+  "/admin/personnel": "Dashboard - Personnel",
   // Add more routes as needed
+  "/user/formation": "Dashboard - Formations",
+  "/user/personnel": "Dashboard - Personnel",
+  "/responsable": "Dashboard",
+  "/formateur/formation": "Dashboard - Formations",
+  "/formateur/participations": "Dashboard - Participations",
+
+
 };
 
 export default function AppLayout({ role = "user" }) {

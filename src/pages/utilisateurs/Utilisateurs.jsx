@@ -16,9 +16,9 @@ const Utilisateurs = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const [DeletedName, setDeletedName] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmit, setIsSubmit] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
 
   // Form state
@@ -57,15 +57,40 @@ const Utilisateurs = () => {
       ...formData,
       [name]: value,
     });
+    // Clear the error for this field when user starts typing
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: null
+      });
+    }
   };
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.login.trim()) {
+        errors.login = 'Login est requis';
+    }
+
+     // Only validate password when creating new user
+  if (!currentUser && !formData.password.trim()) {
+    errors.password = 'Mot de passe est requis';
+  }
+    if (!formData.role) {
+      errors.role = 'Role est requis';
+  }
+
+    return errors;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errors = validate(formData);
-    console.log("errors",errors);
-
-   setFormErrors(errors);
-   setIsSubmit(true);
+    const errors = validateForm();
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+        setFormErrors({}); // clear errors if valid
     // Reset errors
     try {
       if (currentUser) {
@@ -132,27 +157,9 @@ const Utilisateurs = () => {
       }
     }
   };
-//-------------validation ------------------
-useEffect(() => {
-  if (Object.keys(formErrors).length === 0 && isSubmit) {
-    console.log (formData)
-  }
-}, [formErrors])
 
 
-const validate = (values) =>{
-  const errors ={} ;
-  if (!values.login){
-    errors.login = "Login is required";
-  }
-  if (!values.password){
-    errors.password = "Password is required";
-  }
-  if (!values.role){
-    errors.role = "Role is required";
-  }
-  return errors
-}
+
 
   //-------------edit user ------------------
 
@@ -205,7 +212,12 @@ const validate = (values) =>{
       role: "",
     });
     setCurrentUser(null);
+    setFormErrors({});
+    setSelectedFile(null);
+
+
   };
+ 
 
   if (loading)
     return (
@@ -224,15 +236,54 @@ const validate = (values) =>{
     {
       field: "login",
       headerName: "Login",
-      width: 200,
+      width: 250,
       headerClassName: "super-app-theme--header",
+      renderCell: (params) => (
+        <div className="flex items-center space-x-3">
+          {params.row.image && (
+            <img
+              src={params.row.image}
+              alt="User"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          )}
+          <span>{params.row.login}</span>
+        </div>
+      ),
     },
+    
     {
       field: "role",
       headerName: "Role",
-      width: 200,
+      width: 120,
       headerClassName: "super-app-theme--header",
-      renderCell: (params) => params.row.role?.name || "",
+      renderCell: (params) => {
+        const roleName = params.row.role?.name;
+        let bgColor, textColor, displayName;
+  
+        // Determine colors and display name based on role
+        if (roleName === 'ROLE_ADMIN') {
+          bgColor = 'bg-purple-100';
+          textColor = 'text-purple-800';
+          displayName = 'Admin';
+        } else if (roleName === 'ROLE_RESPONSABLE') {
+          bgColor = 'bg-blue-100';
+          textColor = 'text-blue-800';
+          displayName = 'Responsable';
+        } else {
+          bgColor = 'bg-green-100';
+          textColor = 'text-green-800';
+          displayName = 'Utilisateur';
+        }
+  
+        return (
+          <div className="flex items-center h-full">
+            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${bgColor} ${textColor}`}>
+              {displayName}
+            </span>
+          </div>
+        );
+      },
     },
     {
       field: "actions",
@@ -259,24 +310,24 @@ const validate = (values) =>{
   ];
 
   return (
-    <div className="flex-1 p-8 bg-white rounded-[20px] shadow-md overflow-hidden  ">
+    <div className="flex-1 p-8 bg-white rounded-[20px] shadow-md overflow-hidden  " >
       {/* Search Bar */}
 
       {/* Users Table */}
       <div className="">
-        <Box sx={{ height: 360, width: "100%" }}>
+        <Box sx={{ height: 450, width: "100%" }}>
           <DataGrid
             rows={users}
             columns={columns}
             initialState={{
               pagination: {
                 paginationModel: {
-                  pageSize: 4,
+                  pageSize: 6,
                 },
               },
             }}
             slots={{ toolbar: GridToolbar }}
-            pageSizeOptions={[5]}
+            pageSizeOptions={[6]}
             checkboxSelection
             disableRowSelectionOnClick
           />
@@ -319,11 +370,11 @@ const validate = (values) =>{
                     name="login"
                     value={formData.login}
                     onChange={handleInputChange}
-                    class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 "
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#947ebc] focus:border-[#947ebc] outline-none transition-all"
                   />
+                 {formErrors.login && <p className="text-red-500 text-sm mt-2">{formErrors.login}</p>}
                   
                 </div>
-                <p class="mt-2 text-sm text-red-600 ">{formErrors.login}</p>
 
                 <div className="mb-4">
                   <label
@@ -342,8 +393,9 @@ const validate = (values) =>{
                     value={formData.password}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#947ebc] focus:border-[#947ebc] outline-none transition-all"
-                    required={!currentUser}
                   />
+                {formErrors.password && <p className="text-red-500 text-sm mt-2">{formErrors.password}</p>}
+
                 </div>
 
                 <div className="mb-6">
@@ -359,36 +411,62 @@ const validate = (values) =>{
                     value={formData.role}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#947ebc] focus:border-[#947ebc] outline-none transition-all"
-                    required
                   >
                     <option value="">Select a role</option>
                     {roles.map((role) => (
                       <option key={role.id} value={role.id}>
-                        {role.name}
+                        {role.name.replace('ROLE_', '').toLowerCase()}
                       </option>
                     ))}
                   </select>
+                  {formErrors.role && <p className="text-red-500 text-sm mt-2">{formErrors.role}</p>}
+
                 </div>
                 <div className="mb-4">
-                  <label
-                    htmlFor="image"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Profile Image (optional)
-                  </label>
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        image: e.target.files[0],
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#947ebc] focus:border-[#947ebc] outline-none transition-all"
-                  />
+                <label
+                      htmlFor="uploadFile1"
+                      className="bg-white text-center rounded w-auto py-2 px-2 flex flex-col items-center justify-center cursor-pointer border-2 border-gray-300 mx-auto font-[sans-serif] m-2"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-8 mb-6 fill-gray-400"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M22 13a1 1 0 0 0-1 1v4.213A2.79 2.79 0 0 1 18.213 21H5.787A2.79 2.79 0 0 1 3 18.213V14a1 1 0 0 0-2 0v4.213A4.792 4.792 0 0 0 5.787 23h12.426A4.792 4.792 0 0 0 23 18.213V14a1 1 0 0 0-1-1Z" />
+                        <path d="M6.707 8.707 11 4.414V17a1 1 0 0 0 2 0V4.414l4.293 4.293a1 1 0 0 0 1.414-1.414l-6-6a1 1 0 0 0-1.414 0l-6 6a1 1 0 0 0 1.414 1.414Z" />
+                      </svg>
+                      <p className="text-gray-400 font-semibold text-sm">
+                        Choose an <span className="text-[#7a6699]">image</span> to
+                        upload
+                      </p>
+
+                      <input
+      type="file"
+      id="uploadFile1"
+      className="hidden"
+      accept="image/*"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        setSelectedFile(file);
+        setFormData({
+          ...formData,
+          image: file
+        });
+      }}
+    />
+
+                      <p className="text-xs text-gray-400 mt-2">
+                        Svg, png is allowed.
+                      </p>
+                      {selectedFile && (
+      <p className="text-sm text-gray-600 mt-1 truncate max-w-xs">
+        {selectedFile.name}
+      </p>
+    )}
+
+    
+                    </label>
+                  
                 </div>
 
                 <div className="flex justify-end space-x-3">

@@ -16,7 +16,7 @@ const Referentiels = () => {
   const [profils, setProfils] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -54,6 +54,19 @@ const Referentiels = () => {
 
     fetchData();
   }, [showModal]);
+  //-----------------
+  const validateForm = () => {
+    const errors = {};
+    const trimmedLibelle = formData.libelle ? formData.libelle.trim() : '';
+    
+    if (!trimmedLibelle) {
+      errors.libelle = "Libelle est requis";
+    } else if (trimmedLibelle.length < 2) {
+      errors.libelle = "Libelle doit contenir au moins 2 caractères";
+    }
+    return errors;
+  };
+
   //--------------------------
   const { setCountLabel } = useOutletContext();
   const { setHeaderAddHandler } = useOutletContext();
@@ -82,12 +95,26 @@ const Referentiels = () => {
       ...formData,
       [name]: value,
     });
+    
+    // Clear the error for this field when typing
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: null
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-     // Validate the form
- /* const errors = validate(formData);
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({}); // clear errors if valid
+    // Validate the form
+    /* const errors = validate(formData);
   console.log("Validation errors:", errors); // Add this line
   
   setFormErrors(errors);
@@ -139,46 +166,31 @@ const Referentiels = () => {
       setError(err.message || "Operation failed");
     }
   };
-  //-------------validation ------------------
-  useEffect(() => {
-    if (Object.keys(formErrors).length === 0 && isSubmit) {
-      console.log (formData)
-    }
-  }, [formErrors])
-  
-  
-  const validate = (values) =>{
-    const errors ={} ;
-    if (!values.libelle){
-      errors.login = "Libelle is required";
-    }
-    return errors
-  }
+
   const handleDeleteClick = (id) => {
     setDeleteId(id);
     setShowDeleteModal(true);
   };
   const handleDelete = async (id) => {
-      try {
-        if (activeTab === "domaines") {
-          await refService.deleteDomaine(id);
-          const updated = await refService.getAllDomaine();
-          setDomaines(updated);
-        } else if (activeTab === "structures") {
-          await refService.deleteStructure(id);
-          const updated = await refService.getAllStructure();
-          setStructures(updated);
-        } else {
-          await refService.deleteProfil(id);
-          const updated = await refService.getAllProfil();
-          setProfils(updated);
-        }
-      } catch (err) {
-        setError(err.message || "Delete failed");
-      }finally {
-        setShowDeleteModal(false);
+    try {
+      if (activeTab === "domaines") {
+        await refService.deleteDomaine(id);
+        const updated = await refService.getAllDomaine();
+        setDomaines(updated);
+      } else if (activeTab === "structures") {
+        await refService.deleteStructure(id);
+        const updated = await refService.getAllStructure();
+        setStructures(updated);
+      } else {
+        await refService.deleteProfil(id);
+        const updated = await refService.getAllProfil();
+        setProfils(updated);
       }
-    
+    } catch (err) {
+      setError(err.message || "Delete failed");
+    } finally {
+      setShowDeleteModal(false);
+    }
   };
   const handleEdit = (item) => {
     setCurrentItem(item);
@@ -191,6 +203,8 @@ const Referentiels = () => {
       libelle: "",
     });
     setCurrentItem(null);
+    setFormErrors({}); // Clear all errors
+
   };
 
   const getActiveData = () => {
@@ -250,8 +264,8 @@ const Referentiels = () => {
             <Edit2 className="w-4 h-4 inline" />
           </button>
           <button
-                    onClick={() => handleDeleteClick(params.row.id)}
-                    className="text-red-600 hover:text-red-900"
+            onClick={() => handleDeleteClick(params.row.id)}
+            className="text-red-600 hover:text-red-900"
           >
             <Trash2 className="w-4 h-4 inline" />
           </button>
@@ -260,7 +274,11 @@ const Referentiels = () => {
     },
   ];
 
-  if (loading) return <Loading />;
+  if (loading) return <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+  <div className="bg-white p-6 rounded-lg shadow-lg">
+    <p>Loading...</p>
+  </div>
+</div>;
   if (error)
     return <div className="text-red-500 text-center p-4">Error: {error}</div>;
 
@@ -324,11 +342,11 @@ const Referentiels = () => {
           />
         </Box>
       </div>
-{/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <ConfirmationModal
-        message={activeTab.slice(0, -1)} // Remove 's' from end
-        itemId={deleteId}
+          message={activeTab.slice(0, -1)} // Remove 's' from end
+          itemId={deleteId}
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteModal(false)}
         />
@@ -359,10 +377,14 @@ const Referentiels = () => {
                     value={formData.libelle}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#947ebc] focus:border-[#947ebc] outline-none transition-all"
-                    required
+                    
                     autoFocus
                   />
-                  <p className="mt-2 text-sm text-red-600">{formErrors.libelle}</p>
+                  {formErrors.libelle && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {formErrors.libelle}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex justify-end space-x-3">

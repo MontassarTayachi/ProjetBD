@@ -29,18 +29,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (formData) => {
-    try {
-      const response = await axios.post("/api/auth/login", formData);
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('role', response.data.role);
-      setUser(getCurrentUser());
-      setIsAuthenticated(true);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axios.post("/api/auth/login", formData);
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('role', response.data.role);
+    setUser(getCurrentUser());
+    setIsAuthenticated(true);
+    return response;
   };
-
+  
   const logout = () => {
     authLogout();
     setUser(null);

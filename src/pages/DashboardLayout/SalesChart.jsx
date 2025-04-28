@@ -12,39 +12,24 @@ import Box from '@mui/material/Box';
 import { BarChart } from '@mui/x-charts';
 import { Paper } from '@mui/material';
 
-// project imports
+// ==============================|| FORMATIONS BY DOMAIN CHART ||============================== //
 
-
-// ==============================|| SALES COLUMN CHART ||============================== //
-
-export default function SalesChart() {
+export default function SalesChart({ formationCounts = [] }) {
   const theme = useTheme();
 
-  const [showIncome, setShowIncome] = useState(true);
-  const [showCostOfSales, setShowCostOfSales] = useState(true);
+  // State for toggling domain visibility
+  const [showFormations, setShowFormations] = useState(true);
 
-  const handleIncomeChange = () => {
-    setShowIncome(!showIncome);
-  };
+  // Prepare data for the chart
+  const domains = formationCounts.map(item => item.domaine);
+  const counts = formationCounts.map(item => item.count);
 
-  const handleCostOfSalesChange = () => {
-    setShowCostOfSales(!showCostOfSales);
-  };
-
-  const valueFormatter = (value) => `$ ${value} Thousands`;
   const primaryColor = theme.palette.primary.main;
-  const warningColor = theme.palette.warning.main;
+  const secondaryColor = theme.palette.secondary.main;
 
-  const lables = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const data = [
-    { data: [180, 90, 135, 114, 120, 145, 170, 200, 170, 230, 210, 180], label: 'Income', color: warningColor, valueFormatter },
-    { data: [120, 45, 78, 150, 168, 99, 180, 220, 180, 210, 220, 200], label: 'Cost of Sales', color: primaryColor, valueFormatter }
-  ];
-
-  const axisFonstyle = { fontSize: 10, fill: theme.palette.text.secondary };
+  const axisFontStyle = { fontSize: 10, fill: theme.palette.text.secondary };
 
   return (
-    
     <Paper
       elevation={3}
       sx={{
@@ -55,59 +40,78 @@ export default function SalesChart() {
         overflow: "hidden",
         border: "1px solid #f3f4f6",
         boxShadow: "0 4px 20px rgba(0,0,0,0.05)",  
-      }}>
+      }}
+    >
       <Box sx={{ p: 2.5, pb: 0 }}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-              Net Profit
+              Formations by Domain
             </Typography>
-            <Typography variant="h4">$1560</Typography>
+            <Typography variant="h4">
+              {formationCounts.reduce((sum, item) => sum + item.count, 0)} Total
+            </Typography>
           </Box>
 
           <FormGroup>
-            <Stack direction="row">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showIncome}
-                    onChange={handleIncomeChange}
-                    sx={{ '&.Mui-checked': { color: warningColor }, '&:hover': { backgroundColor: alpha(warningColor, 0.08) } }}
-                  />
-                }
-                label="Income"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showCostOfSales}
-                    onChange={handleCostOfSalesChange}
-                    sx={{ '&.Mui-checked': { color: primaryColor } }}
-                  />
-                }
-                label="Cost of Sales"
-              />
-            </Stack>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showFormations}
+                  onChange={() => setShowFormations(!showFormations)}
+                  sx={{ 
+                    '&.Mui-checked': { color: primaryColor }, 
+                    '&:hover': { backgroundColor: alpha(primaryColor, 0.08) } 
+                  }}
+                />
+              }
+              label="Show Formations"
+            />
           </FormGroup>
         </Stack>
 
-        <BarChart
-          height={380}
-          grid={{ horizontal: true }}
-          xAxis={[{ data: lables, scaleType: 'band', tickLabelStyle: { ...axisFonstyle, fontSize: 12 } }]}
-          yAxis={[{ disableLine: true, disableTicks: true, tickMaxStep: 20, tickLabelStyle: axisFonstyle }]}
-          series={data
-            .filter((series) => (series.label === 'Income' && showIncome) || (series.label === 'Cost of Sales' && showCostOfSales))
-            .map((series) => ({ ...series, type: 'bar' }))}
-          slotProps={{ legend: { hidden: true }, bar: { rx: 5, ry: 5 } }}
-          axisHighlight={{ x: 'none' }}
-          margin={{ top: 30, left: 40, right: 10 }}
-          tooltip={{ trigger: 'item' }}
-          sx={{
-            '& .MuiBarElement-root:hover': { opacity: 0.6 },
-            '& .MuiChartsAxis-directionX .MuiChartsAxis-tick, & .MuiChartsAxis-root line': { stroke: theme.palette.divider }
-          }}
-        />
+        {showFormations && (
+          <BarChart
+            height={380}
+            grid={{ horizontal: true }}
+            xAxis={[{ 
+              data: domains, 
+              scaleType: 'band', 
+              tickLabelStyle: { ...axisFontStyle, fontSize: 12 },
+              // Rotate labels if they're too long
+              tickLabelRotation: domains.some(d => d.length > 10) ? -45 : 0
+            }]}
+            yAxis={[{ 
+              disableLine: true, 
+              disableTicks: true, 
+              tickLabelStyle: axisFontStyle 
+            }]}
+            series={[{
+              data: counts,
+              color: primaryColor,
+              label: 'Formations Count',
+              type: 'bar'
+            }]}
+            slotProps={{ 
+              legend: { hidden: true }, 
+              bar: { rx: 5, ry: 5 } 
+            }}
+            axisHighlight={{ x: 'none' }}
+            margin={{ 
+              top: 30, 
+              left: 40, 
+              right: 10,
+              bottom: domains.some(d => d.length > 10) ? 100 : 30 // Extra space for rotated labels
+            }}
+            tooltip={{ trigger: 'item' }}
+            sx={{
+              '& .MuiBarElement-root:hover': { opacity: 0.6 },
+              '& .MuiChartsAxis-directionX .MuiChartsAxis-tick, & .MuiChartsAxis-root line': { 
+                stroke: theme.palette.divider 
+              }
+            }}
+          />
+        )}
       </Box>
     </Paper>
   );
