@@ -4,9 +4,22 @@ import api from '../../api/axios'; // Import the axios instance with interceptor
 
 
 export const userService = {
+  createUser: async (formData) => {
+    try {
+      const response = await api.post('/user/add', formData ,{
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
+  } ,
 
   // User CRUD operations
-  createUser: async (formData) => {
+ /* createUser: async (formData) => {
     try {
       const response = await api.post('/user/add', formData, {
         headers: {
@@ -18,7 +31,7 @@ export const userService = {
       console.error(error);
       throw error; // Just rethrow original error object
     }
-  } ,
+  } ,*/
   
   getAllUsers: async () => {
     try {
@@ -41,14 +54,50 @@ export const userService = {
 
  
 
-  updateUser: async (id, userData) => {
-    try {
-      const response = await api.put(`/user/update/${id}`, userData);
-      return response.data;
-    } catch (error) {
-      throw new Error(`Failed to update user: ${error.message}`);
+  // In userService.js
+/*updateUser: async (id, userData) => {
+  try {
+    const formData = new FormData();
+    
+    // Create user object
+    const userObject = {
+      login: userData.login,
+      password: userData.password || "", // Send empty string if no password
+      role: {
+        id: userData.roleId
+      }
+    };
+
+    // Append as JSON string
+    formData.append("user", JSON.stringify(userObject));
+
+    // Append image if exists
+    if (userData.image) {
+      formData.append("image", userData.image);
     }
-  },
+
+    const response = await api.put(`/user/update/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(`Failed to update user: ${error.message}`);
+  }
+},*/
+updateUser : async (id, formData) => {
+  try {
+      const response = await api.put(`/user/update/${id}`, formData, {
+          headers: {
+              'Content-Type': 'multipart/form-data'
+          }
+      });
+      return response.data;
+  } catch (error) {
+      throw new Error(`Failed to update user: ${error.response?.data?.message || error.message}`);
+  }
+} ,
 
   deleteUser: async (id) => {
     try {

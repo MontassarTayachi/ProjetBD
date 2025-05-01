@@ -18,8 +18,11 @@ import { useOutletContext } from "react-router-dom";
 import ActionsDropdown from "../../components/ActionsDropdown";
 import FormationsPopup from "./FormationPopup";
 import FormationPopup from "./FormationPopup";
+import { useToast } from "../../contexts/ToastContext";
+import { refService } from "../Referentiels/refService";
 
 export default function Personnel() {
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState("employeurs");
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -30,12 +33,13 @@ export default function Personnel() {
 
   // Data states
   const [employeurs, setEmployeurs] = useState([]);
+  const [profils, setProfils] = useState([]);
   const [formateurs, setFormateurs] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [showFormationsPopUp, setShowFormationsPopUp] = useState(false);
   const [selectedFormationId, setSelectedFormationId] = useState(null);
   const [formations, setFormations] = useState([]);
-  
+
   // Form states
   const [formData, setFormData] = useState({
     // Common fields
@@ -45,15 +49,17 @@ export default function Personnel() {
     tel: "",
     // Participant specific
     formations: [],
+    profil: {id :""},
     // Formateur specific
     type: "Indépendant",
     employeur: { id: "" },
+    user_login: "",
+    user_password: "",
     // Employeur specific
     nomemployeur: "",
   });
   const [errors, setErrors] = useState({});
-  const [showFormationsModal, setShowFormationsModal] = useState(false);
-  const [selectedParticipant, setSelectedParticipant] = useState(null);
+  const [selectedParticipantId, setSelectedParticipantId] = useState(null); // <--- new
   useEffect(() => {
     fetchData();
     console.log(employeurs);
@@ -79,8 +85,10 @@ export default function Personnel() {
         case "participants":
           const participantsData = await personnelService.getAllParticipants();
           const formationdata = await formationService.getAllFormation(); // Create this in your service
+          const profilsData = await refService.getAllProfil();
           setFormations(formationdata);
           setParticipants(participantsData);
+          setProfils(profilsData);
           break;
       }
     } catch (error) {
@@ -121,6 +129,12 @@ export default function Personnel() {
       ...formData,
       [name]: value,
     });
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: null
+      });
+    }
   };
 
   const handleSelectChange = (e) => {
@@ -138,7 +152,10 @@ export default function Personnel() {
       email: "",
       tel: "",
       formations: [],
+      profil: { id: "" },
       type: "Indépendant",
+      user_login: "",
+      user_password: "",
       employeur: { id: "" },
       nomemployeur: "",
     });
@@ -146,12 +163,89 @@ export default function Personnel() {
     setErrors({});
   };
 
+  //-------Form Validation ----
+const validateForm = () => {
+  const newErrors = {};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/; // French phone format
+
+  // Common validations for all types except employeurs
+  if (activeTab !== "employeurs") {
+    if (!formData.nom.trim()) {
+      newErrors.nom = "Le nom est requis";
+    } else if (formData.nom.length > 50) {
+      newErrors.nom = "Le nom ne doit pas dépasser 50 caractères";
+    }
+
+    if (!formData.prenom.trim()) {
+      newErrors.prenom = "Le prénom est requis";
+    } else if (formData.prenom.length > 50) {
+      newErrors.prenom = "Le prénom ne doit pas dépasser 50 caractères";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "L'email est requis";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Format d'email invalide";
+    }
+
+    if (!formData.tel) {
+      newErrors.tel = "Le téléphone est requis";
+    } 
+  }
+
+  // Tab-specific validations
+  switch (activeTab) {
+    case "employeurs":
+      if (!formData.nomemployeur.trim()) {
+        newErrors.nomemployeur = "Le nom de l'employeur est requis";
+      } else if (formData.nomemployeur.length > 100) {
+        newErrors.nomemployeur = "Le nom ne doit pas dépasser 100 caractères";
+      }
+      break;
+
+    case "formateurs":
+      if (!currentItem) {
+        if (!formData.user_login.trim()) {
+          newErrors.user_login = "Le login est requis";
+        }
+        if (!formData.user_password.trim()) {
+          newErrors.user_password = "Le mot de passe est requis";
+        } else if (formData.user_password.length < 6) {
+          newErrors.user_password = "Minimum 6 caractères requis";
+        }
+      }
+      if (!formData.employeur.id) {
+        newErrors.employeur = "L'employeur est requis";
+      }
+      if (!formData.type) {
+        newErrors.type = "Le type est requis";
+      }
+      break;
+
+    case "participants":
+     
+      if (!formData.profil.id) {
+        newErrors.profil = "Le profil est requis";
+      }
+      break;
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     console.log(formData);
     try {
       let response;
-      if (currentItem) {
+       // Determine action type first
+    const isUpdate = !!currentItem;
+    const actionType = isUpdate ? 'updated' : 'created';
+      if (isUpdate) {
         // Update existing
         switch (activeTab) {
           case "employeurs":
@@ -189,14 +283,38 @@ export default function Personnel() {
             break;
         }
       }
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `${getTranslatedType()} ${isUpdate ? 'mis à jour' : 'créé'} avec succès`
+      });
       setShowModal(false);
       fetchData();
       resetForm();
     } catch (error) {
+      addToast({
+        type: "error",
+        title: "Erreur",
+        message: `Échec de ${
+          currentItem ? "mise à jour" : "création"
+        } ${getTranslatedType()}`,
+      });
       setError(error.message);
     }
   };
-
+  // Add this helper function
+  const getTranslatedType = () => {
+    switch (activeTab) {
+      case "employeurs":
+        return "Employeur";
+      case "formateurs":
+        return "Formateur";
+      case "participants":
+        return "Participant";
+      default:
+        return "";
+    }
+  };
   const handleEdit = (item) => {
     setCurrentItem(item);
     setFormData({
@@ -204,6 +322,7 @@ export default function Personnel() {
       prenom: item.prenom || "",
       email: item.email || "",
       tel: item.tel || "",
+      profil: item.profil || { id: "" },
       type: item.type || "Indépendant",
       employeur: item.employeur || { id: "" },
       nomemployeur: item.nomemployeur || "",
@@ -229,6 +348,11 @@ export default function Personnel() {
           await personnelService.deleteParticipant(deleteId);
           break;
       }
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `${getTranslatedType()} supprimé avec succès`,
+      });
       fetchData();
     } catch (error) {
       setError(error.message);
@@ -267,6 +391,51 @@ export default function Personnel() {
       case "formateurs":
         return (
           <div>
+            {/* Add login/password fields only for creation */}
+            {!currentItem && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Login <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="user_login"
+                    value={formData.user_login}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md border ${
+                      errors.user_login ? "border-red-500" : "border-gray-300"
+                    } shadow-sm p-2`}
+                  />
+                  {errors.user_login && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.user_login}
+                    </p>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    name="user_password"
+                    value={formData.user_password}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md border ${
+                      errors.user_password
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } shadow-sm p-2`}
+                  />
+                  {errors.user_password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.user_password}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
                 Type
@@ -284,8 +453,10 @@ export default function Personnel() {
                 <option value="Salarié">Salarié</option>
               </select>
               {errors.type && (
-                <p className="mt-1 text-sm text-red-600">{errors.type}</p>
-              )}
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.type}
+                    </p>
+                  )}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
@@ -296,8 +467,10 @@ export default function Personnel() {
                 name="employeur"
                 value={formData.employeur.id}
                 onChange={handleSelectChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
-              >
+                className={`mt-1 block w-full rounded-md border ${
+                  errors.employeur ? "border-red-500" : "border-gray-300"
+                } shadow-sm p-2`}
+              >              
                 <option value="">Select Employer</option>
                 {employeurs.map((emp) => (
                   <option key={emp.id} value={emp.id}>
@@ -305,12 +478,47 @@ export default function Personnel() {
                   </option>
                 ))}
               </select>
+              {errors.employeur && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.employeur}
+                    </p>
+                  )}
             </div>
           </div>
         );
-      
+
+      case "participants": 
+       return (
+<div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Profil
+                <span class="text-red-500">*</span>
+              </label>
+              <select
+                name="profil"
+                value={formData.profil.id}
+                onChange={handleSelectChange}
+                className={`mt-1 block w-full rounded-md border ${
+                  errors.profil ? "border-red-500" : "border-gray-300"
+                } shadow-sm p-2`}
+              >              
+                <option value="">Select Profil</option>
+                {profils.map((pro) => (
+                  <option key={pro.id} value={pro.id}>
+                    {pro.libelle}
+                  </option>
+                ))}
+              </select>
+              {errors.profil && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.profil}
+                    </p>
+                  )}
+            </div>
+       );
+       
       default:
-        return null;
+      return null;
     }
   };
 
@@ -465,6 +673,7 @@ export default function Personnel() {
           onDelete={() => handleDeleteClick(params.row.id)}
           onAddFormations={() => {
             setShowFormationsPopUp(true);
+            setSelectedParticipantId(params.row.id); // <--- save which participant was clicked
           }}
         />
       ),
@@ -500,7 +709,7 @@ export default function Personnel() {
   ];
 
   return (
-    <div className="flex-1 px-8 py-4 bg-white rounded-[20px] shadow-md overflow-hidden  ">
+    <div className="flex-1 px-8 py-4 bg-white rounded-[20px] shadow-md overflow-hidden">
       {/* Loading state */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -532,13 +741,18 @@ export default function Personnel() {
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
-       {/* Formations Modal */}
-       {showFormationsPopUp && (
-              <FormationPopup
-                formations={formations}
-                onClose={() => setShowFormationsPopUp(false)}
-              />
-            )}
+      {/* Formations Modal */}
+      {showFormationsPopUp && selectedParticipantId && (
+        <FormationPopup
+          formations={formations}
+          participantId={selectedParticipantId} // <-- make sure you pass it!
+          onClose={() => {
+            setShowFormationsPopUp(false);
+            setSelectedParticipantId(null);
+          }}
+        />
+      )}
+
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
@@ -551,123 +765,137 @@ export default function Personnel() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-[#7a6699]">
                   {currentItem
-                    ? `Edit ${activeTab.slice(0, -1)}`
-                    : `Add New ${activeTab.slice(0, -1)}`}
+                    ? `Mise à jour ${activeTab.slice(0, -1)}`
+                    : `Ajouter ${activeTab.slice(0, -1)}`}
                 </h2>
                 <button
                   onClick={() => {
                     setShowModal(false);
                     resetForm();
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                  </div>
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                  <form onSubmit={handleSubmit}>
-                  <div className="space-y-4">
-                    {activeTab !== "employeurs" && (
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4">
+                  {activeTab !== "employeurs" && (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                        Prénom
-                        <span class="text-red-500">*</span>
-                        </label>
-                        <input
-                        type="text"
-                        name="prenom"
-                        value={formData.prenom}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
-                        />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Prénom
+                            <span class="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="prenom"
+                            value={formData.prenom}
+                            onChange={handleInputChange}
+                            className={`mt-1 block w-full rounded-md border ${
+                              errors.prenom ? "border-red-500" : "border-gray-300"
+                            } shadow-sm p-2`}
+                          />
+                          {errors.prenom && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.prenom}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Nom
+                            <span class="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="nom"
+                            value={formData.nom}
+                            onChange={handleInputChange}
+                            className={`mt-1 block w-full rounded-md border ${
+                              errors.nom ? "border-red-500" : "border-gray-300"
+                            } shadow-sm p-2`}
+                          />
+                          {errors.nom && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.nom}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                        Nom
-                        <span class="text-red-500">*</span>
+                          Email
+                          <span class="text-red-500">*</span>
                         </label>
                         <input
-                        type="text"
-                        name="nom"
-                        value={formData.nom}
-                        onChange={handleInputChange}
-                        className={`mt-1 block w-full rounded-md border ${
-                          errors.nom ? "border-red-500" : "border-gray-300"
-                        } shadow-sm p-2`}
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className={`mt-1 block w-full rounded-md border ${
+                            errors.email ? "border-red-500" : "border-gray-300"
+                          } shadow-sm p-2`}
                         />
-                        {errors.nom && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.nom}
-                        </p>
+                        {errors.email && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.email}
+                          </p>
                         )}
                       </div>
-                      </div>
                       <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Email
-                        <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className={`mt-1 block w-full rounded-md border ${
-                        errors.email ? "border-red-500" : "border-gray-300"
-                        } shadow-sm p-2`}
-                      />
-                      {errors.email && (
-                        <p className="mt-1 text-sm text-red-600">
-                        {errors.email}
-                        </p>
-                      )}
-                      </div>
-                      <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Téléphone
-                        <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        name="tel"
-                        value={formData.tel}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
-                      />
+                        <label className="block text-sm font-medium text-gray-700">
+                          Téléphone
+                          <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          name="tel"
+                          value={formData.tel}
+                          onChange={handleInputChange}
+                          className={`mt-1 block w-full rounded-md border ${
+                            errors.tel ? "border-red-500" : "border-gray-300"
+                          } shadow-sm p-2`}
+                        />  
+                         {errors.tel && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.tel}
+                          </p>
+                        )}                      
                       </div>
                     </>
-                    )}
+                  )}
 
-                    {renderFormFields()}
-                  </div>
+                  {renderFormFields()}
+                </div>
 
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
                     type="button"
                     onClick={() => {
                       setShowModal(false);
                       resetForm();
                     }}
                     className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
+                  >
                     Annuler
-                    </button>
-                    <button
+                  </button>
+                  <button
                     type="submit"
                     className="px-4 py-2 text-white bg-[#7a6699] rounded-md hover:bg-[#947ebc]"
-                    >
+                  >
                     {currentItem ? "Mettre à jour" : "Créer"}
-                    </button>
-                  </div>
-                  </form>
+                  </button>
                 </div>
-                </div>
-              </div>
-              )}
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* Tabs */}
+      {/* Tabs */}
       <div className="mb-6 border-b border-gray-200 mt-0">
         <nav className="-mb-px flex space-x-8">
           <button
@@ -680,7 +908,6 @@ export default function Personnel() {
           >
             <Briefcase className="w-4 h-4 mr-2" />
             Employeurs
-            
           </button>
           <button
             onClick={() => setActiveTab("formateurs")}

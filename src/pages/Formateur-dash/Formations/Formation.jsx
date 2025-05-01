@@ -38,7 +38,7 @@ const Formation = () => {
      const navigate = useNavigate();
 
      const handleView = (id) => {
-       navigate(`/admin/participations/${id}`);
+       navigate(`/formateur/participations/${id}`);
      };
   
   
@@ -54,13 +54,7 @@ const Formation = () => {
   if (error)
     return <div className="text-red-500 text-center p-4">Error: {error}</div>;
   const columns = [
-    {
-      field: "id",
-      headerName: "ID",
-      width: 90,
-      headerClassName: "super-app-theme--header",
-      border: "none",
-    },
+ 
     {
       field: "titre",
       headerName: "Titre",

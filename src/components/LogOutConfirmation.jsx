@@ -16,10 +16,10 @@ export default function LogOutConfirmationModal({ onConfirm, onCancel }) {
                     <div className="text-xl montserrat-700 text-[#1d2736]">Se Déconnecter</div>
 
                     <div className="py-6 text-gray-700 montserrat-semi">
-                        <p>Are you sure you want to <span className="text-red-700">vous déconnecter</span>? Cette action mettra fin à votre session.</p>
+                        <p>Êtes-vous sûr de vouloir <span className="text-red-700">vous déconnecter</span>? Cette action mettra fin à votre session.</p>
                     </div>
 
-                    {/* Modal footer */}
+                    {/* Pied de modal */}
                     <div className="flex justify-end">
                         <button
                             onClick={cancelAction}

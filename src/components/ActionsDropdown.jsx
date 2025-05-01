@@ -118,7 +118,7 @@ export default function ActionsDropdown({ onEdit, onDelete, onAddFormations }) {
           disableRipple
         >
           <AddIcon />
-          Add Formations
+          Ajouter Formations
         </MenuItem>
       </StyledMenu>
     </div>

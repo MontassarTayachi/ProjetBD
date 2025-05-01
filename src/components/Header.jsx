@@ -1,10 +1,15 @@
 import { Bell } from 'lucide-react'; 
 import { useAuth } from '../contexts/AuthContext'; 
 import React from 'react';
+import {  useLocation } from "react-router-dom";
+
 
 export default function Header({ title = "Dashboard", subtitle = "Overview", countLabel = "", onAddClick }) {
   const { user, loading } = useAuth();
   const [username, setUsername] = React.useState(null);
+  const location = useLocation();
+  const path = location.pathname;
+  const hideHeader = path.startsWith('/formateur/participations/');
 
   React.useEffect(() => {
     if (!loading) {
@@ -27,10 +32,8 @@ export default function Header({ title = "Dashboard", subtitle = "Overview", cou
       </div>
     </div>
   </div>
-
-  {/* Bottom Row: Responsive Layout */}
+  {!hideHeader && (
   <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
-    {/* Left Side: Title, Subtitle, CountLabel */}
     <div className="flex flex-col space-y-1">
           {subtitle && (
             <div className="text-xl sm:text-2xl montserrat-semi text-gray-800">
@@ -47,7 +50,6 @@ export default function Header({ title = "Dashboard", subtitle = "Overview", cou
           )}
         </div>
 
-    {/* Right Side: Add Button */}
     {onAddClick && (
     <div className="flex justify-end">
       <button
@@ -68,7 +70,7 @@ export default function Header({ title = "Dashboard", subtitle = "Overview", cou
     </div>
             )}
 
-  </div>
+  </div> )}
 </header>
 
   );

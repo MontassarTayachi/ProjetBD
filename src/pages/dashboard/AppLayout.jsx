@@ -58,7 +58,7 @@ const menuConfig = {
     {
       icon: <GraduationCap size={20} />,
       text: "Formation",
-      path: "/formateur/formation",
+      path: "/formateur/participations",
     },
   ],
 };

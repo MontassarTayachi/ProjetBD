@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { personnelService } from "./personnelService";
 
-export default function FormationPopup({ formations, onClose }) {
+export default function FormationPopup({ formations, onClose , participantId }) {
   const [selectedIds, setSelectedIds] = useState([]);
 
   const handleCheckboxChange = (id) => {
@@ -8,10 +9,29 @@ export default function FormationPopup({ formations, onClose }) {
       prev.includes(id) ? prev.filter(fId => fId !== id) : [...prev, id]
     );
   };
-
-  const handleConfirm = () => {
-    // onConfirm(selectedIds);
+  const handleConfirm = async () => {
+    try {
+      const requests = selectedIds.map(async (formationId) => {
+        const participationData = {
+          participant: { id: participantId },
+          formation: { id: formationId },
+          nombreHeures: 0 
+        };
+        console.log("Participation Data:", participationData);
+        const response = await personnelService.createParticipation(participationData);
+  
+        // No need to manually check status or ok
+        return response; // response.data already from createParticipation
+      });
+  
+      await Promise.all(requests);
+      onClose();
+    } catch (error) {
+      console.error("Error creating participations:", error.message);
+      // You could optionally show a user-friendly message here
+    }
   };
+  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">

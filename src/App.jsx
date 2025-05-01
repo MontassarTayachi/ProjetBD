@@ -11,10 +11,13 @@ import AppLayout from './pages/dashboard/AppLayout'; // Import the unified layou
 import './App.css';
 import Formation from './pages/Formateur-dash/Formations/Formation';
 import Participation from './pages/Formateur-dash/Participation/Participation';
+import { ToastProvider } from './contexts/ToastContext';
 
 function App() {
   return (
     <BrowserRouter>
+        <ToastProvider>
+
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
@@ -56,7 +59,8 @@ function App() {
           </Route>
         </Route>
       </Routes>
-      
+      </ToastProvider>
+
     </BrowserRouter>
   );
 }

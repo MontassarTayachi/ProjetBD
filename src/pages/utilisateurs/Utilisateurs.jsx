@@ -5,8 +5,10 @@ import Box from "@mui/material/Box";
 import { Edit2, Trash2 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { useToast } from "../../contexts/ToastContext";
 
 const Utilisateurs = () => {
+  const { addToast } = useToast();
   const [users, setUsers] = useState([]);
   const [usersNumber, setUsersNumber] = useState(0);
   const [roles, setRoles] = useState([]);
@@ -17,7 +19,6 @@ const Utilisateurs = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [formErrors, setFormErrors] = useState({});
-  const [isSubmit, setIsSubmit] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
 
@@ -93,24 +94,41 @@ const Utilisateurs = () => {
         setFormErrors({}); // clear errors if valid
     // Reset errors
     try {
-      if (currentUser) {
+      /*if (currentUser) {
         // Prepare the data for update
-        const updatePayload = {
-          login: formData.login,
-          roleId: formData.role,
-        };
-
-        // Only include password if user entered a new one
-        if (formData.password.trim() !== "") {
-          updatePayload.password = formData.password;
+       // Prepare form data for update
+      const formPayload = new FormData();
+      
+      // Create user object
+      const userObject = {
+        login: formData.login,
+        role: {
+          id: parseInt(formData.role)
         }
+      };
 
-        const updatedUser = await userService.updateUser(
-          currentUser.id,
-          updatePayload
-        );
+      // Add password if provided
+      if (formData.password.trim() !== "") {
+        userObject.password = formData.password;
+      }
 
-        setUsers(users.map((u) => (u.id === currentUser.id ? updatedUser : u)));
+      // Append user data
+      formPayload.append("user", JSON.stringify(userObject));
+
+      // Add image if exists
+      if (formData.image) {
+        formPayload.append("image", formData.image);
+      }
+
+      const updatedUser = await userService.updateUser(
+        currentUser.id,
+        {
+          ...userObject,
+          image: formData.image // Pass the File object directly
+        }
+      );
+
+      setUsers(users.map((u) => (u.id === currentUser.id ? updatedUser : u)));
       } else {
         // Create new user
         
@@ -141,20 +159,60 @@ const Utilisateurs = () => {
         console.log("Form data:", formPayload);
         const newUser = await userService.createUser(formPayload);
         setUsers([...users, newUser]); // Add the new user to state
-      }
+      }*/
+     const formPayload = new FormData();
+     const userObject = {
+      login: formData.login,
+      password: formData.password,
+      role: {
+        id: parseInt(formData.role),
+      },
+    };
+     
+     
+           formPayload.append("user", JSON.stringify(userObject));
+
+           // Add image if exists
+           if (formData.image) {
+             formPayload.append("image", formData.image);
+           }
+
+           if (currentUser) {
+             await userService.updateUser(
+                 currentUser.id,
+                 formPayload
+             );
+             addToast({
+                 type: 'success',
+                 title: 'Success',
+                 message: 'Utilisateur mise à jour avec succès'
+             });
+         } else {
+          console.log("Form data:", formPayload.getAll("user"));
+             await userService.createUser(formPayload);
+             addToast({
+                 type: 'success',
+                 title: 'Success',
+                 message: 'Utilisateur crée avec succès'
+             });
+         }
+     
+           setShowModal(false);
+           fetchFormations();
+           resetForm();
 
       setShowModal(false);
       resetForm();
     } catch (err) {
       console.log(err);
-      console.log("status", err.status);
+     /* console.log("status", err.status);
       console.log("response", err.response.data);
 
       if (err.status === 400) {
         setBackendError("Ce login est déjà utilisé.");
       } else {
         setBackendError("Une erreur est survenue. Veuillez réessayer.");
-      }
+      }*/
     }
   };
 
@@ -185,6 +243,11 @@ const Utilisateurs = () => {
       await userService.deleteUser(deleteId);
       const updated = await userService.getAllUsers();
       setUsers(updated);
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `Utilisateur supprimé avec succès`,
+      });
     } catch (err) {
       setError(err.message);
     }finally {
@@ -270,7 +333,11 @@ const Utilisateurs = () => {
           bgColor = 'bg-blue-100';
           textColor = 'text-blue-800';
           displayName = 'Responsable';
-        } else {
+        }else if (roleName === 'ROLE_FORMATEUR') {  // Add this block
+          bgColor = 'bg-orange-100';
+          textColor = 'text-orange-800';
+          displayName = 'Formateur';}
+           else {
           bgColor = 'bg-green-100';
           textColor = 'text-green-800';
           displayName = 'Utilisateur';

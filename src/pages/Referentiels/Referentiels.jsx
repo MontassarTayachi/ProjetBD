@@ -8,8 +8,10 @@ import { MdOutlineModeEdit } from "react-icons/md";
 import { useOutletContext } from "react-router-dom";
 import Loading from "../../components/Loading";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { useToast } from "../../contexts/ToastContext";
 
 const Referentiels = () => {
+    const { addToast } = useToast();
   // State for each referentiel type
   const [domaines, setDomaines] = useState([]);
   const [structures, setStructures] = useState([]);
@@ -113,22 +115,11 @@ const Referentiels = () => {
       return;
     }
     setFormErrors({}); // clear errors if valid
-    // Validate the form
-    /* const errors = validate(formData);
-  console.log("Validation errors:", errors); // Add this line
-  
-  setFormErrors(errors);
-  setIsSubmit(true);
-  
-  // Check if there are any errors
-  if (Object.keys(errors).length > 0) {
-    console.log("Form has errors, not submitting");
-    return; // Stop the submission if there are errors
-  }*/
     try {
       const data = { libelle: formData.libelle };
-
-      if (currentItem) {
+      const isUpdate = !!currentItem;
+      const actionType = isUpdate ? 'updated' : 'created';
+        if (isUpdate) {
         // Update
         if (activeTab === "domaines") {
           await refService.updateDomaine(currentItem.id, data);
@@ -146,11 +137,27 @@ const Referentiels = () => {
       } else {
         // Create
         if (activeTab === "domaines") {
+          try {
           await refService.createDomaine(data);
+          } catch (error) {
+          if (error.response?.status === 409) {
+            formErrors.libelle = "This domain already exists!";
+        } else {
+          setError('Error creating domain');
+         }
+    }
           const updated = await refService.getAllDomaine();
+          
           setDomaines(updated);
         } else if (activeTab === "structures") {
-          await refService.createStructure(data);
+
+          try {await refService.createStructure(data);
+          } catch (error) {
+            if (error.response?.status === 409) {
+              formErrors.libelle = "This structure already exists!";
+          } else {
+            setError('Error creating structure');
+          }}
           const updated = await refService.getAllStructure();
           setStructures(updated);
         } else {
@@ -159,11 +166,34 @@ const Referentiels = () => {
           setProfils(updated);
         }
       }
-
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `${getTranslatedType()} ${isUpdate ? 'mis à jour' : 'créé'} avec succès`
+      });
       setShowModal(false);
       resetForm();
     } catch (err) {
+      addToast({
+        type: "error",
+        title: "Erreur",
+        message: `Échec de ${
+          currentItem ? "mise à jour" : "création"
+        } ${getTranslatedType()}`,
+      });
       setError(err.message || "Operation failed");
+    }
+  };
+  const getTranslatedType = () => {
+    switch (activeTab) {
+      case "domaines":
+        return "Domaine";
+      case "structures":
+        return "Structure";
+      case "profils":
+        return "Profil";
+      default:
+        return "";
     }
   };
 
@@ -186,6 +216,11 @@ const Referentiels = () => {
         const updated = await refService.getAllProfil();
         setProfils(updated);
       }
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `${getTranslatedType()} supprimé avec succès`,
+      });
     } catch (err) {
       setError(err.message || "Delete failed");
     } finally {

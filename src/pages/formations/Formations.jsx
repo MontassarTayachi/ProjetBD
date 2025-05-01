@@ -5,8 +5,10 @@ import { refService } from "../Referentiels/refService";
 import { personnelService } from "../personnel/personnelService";
 import { useOutletContext } from "react-router-dom";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { useToast } from "../../contexts/ToastContext";
 
 export default function Formations() {
+    const { addToast } = useToast();
   const [formations, setFormations] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -19,6 +21,7 @@ export default function Formations() {
   const [formData, setFormData] = useState({
     titre: "",
     nbHeures: 0,
+    nbHeuresRestantes: 0,
     budget: 0,
     domaine: { id: "" },
     formateur: { id: "" },
@@ -127,6 +130,7 @@ export default function Formations() {
       const formationObject = {
         titre: formData.titre,
         nbHeures: formData.nbHeures,
+        nbHeuresRestantes: formData.nbHeures,
         budget: formData.budget,
         domaine: { id: formData.domaine.id },
         formateur: { id: formData.formateur.id },
@@ -137,15 +141,24 @@ export default function Formations() {
       if (formData.image) {
         formPayload.append("image", formData.image);
       }
-
       if (currentFormation) {
         await formationService.updateFormation(
-          currentFormation.id,
-          formPayload
+            currentFormation.id,
+            formPayload
         );
-      } else {
+        addToast({
+            type: 'success',
+            title: 'Success',
+            message: 'Formation updated successfully'
+        });
+    } else {
         await formationService.createFormation(formPayload);
-      }
+        addToast({
+            type: 'success',
+            title: 'Success',
+            message: 'Formation created successfully'
+        });
+    }
 
       setShowModal(false);
       fetchFormations();
@@ -177,7 +190,13 @@ export default function Formations() {
   const handleDeleteConfirm = async () => {
     try {
       await formationService.deleteFormation(deleteId);
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `Formation supprimé avec succès`,
+      });
       fetchFormations();
+      
     } catch (error) {
       console.error("Error deleting formation:", error);
       setError(error.message);
@@ -242,7 +261,7 @@ export default function Formations() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Title*
+                      Title<span class="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -264,7 +283,7 @@ export default function Formations() {
                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Duration (hours)*
+                        Durée (heurs)<span class="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -283,7 +302,7 @@ export default function Formations() {
                     </div>
                     <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Budget (€)
+                      Budget (€)<span class="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -308,7 +327,7 @@ export default function Formations() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Domain*
+                        Domaine <span class="text-red-500">*</span>
                       </label>
                       <select
                         name="domaine"
@@ -334,7 +353,7 @@ export default function Formations() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Trainer*
+                        Formateur <span class="text-red-500">*</span>
                       </label>
                       <select
                         name="formateur"
@@ -375,8 +394,8 @@ export default function Formations() {
                         <path d="M6.707 8.707 11 4.414V17a1 1 0 0 0 2 0V4.414l4.293 4.293a1 1 0 0 0 1.414-1.414l-6-6a1 1 0 0 0-1.414 0l-6 6a1 1 0 0 0 1.414 1.414Z" />
                       </svg>
                       <p className="text-gray-400 font-semibold text-sm">
-                        Choose an <span className="text-[#7a6699]">image</span>{" "}
-                        to upload
+                        Choisissez une <span className="text-[#7a6699]">image</span>{" "}
+                        pour telecharger
                       </p>
 
                       <input
@@ -396,7 +415,7 @@ export default function Formations() {
                       />
 
                       <p className="text-xs text-gray-400 mt-2">
-                        Svg, png is allowed.
+                        Svg, png sont autorisés.
                       </p>
                       {selectedFile && (
                         <p className="text-sm text-gray-600 mt-1 truncate max-w-xs">

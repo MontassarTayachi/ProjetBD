@@ -25,12 +25,9 @@ getAllDomaine: async () => {
   },
 
   createDomaine: async (domaineData) => {
-    try {
       const response = await api.post('/domaine', domaineData);
       return response.data;
-    } catch (error) {
-      throw new Error(`Failed to create user: ${error.message}`);
-    }
+   
   },
 
   updateDomaine: async (id, domaineData) => {

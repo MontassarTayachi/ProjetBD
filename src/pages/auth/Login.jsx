@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import image from '../../assets/calender.png';
 import logo from '../../assets/logo.png';
-import { Eye, EyeOff } from 'lucide-react'; // Import eye icons from Lucide
+import { Eye, EyeOff } from 'lucide-react'; // Importer les icônes d'œil depuis Lucide
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion'; // 👈 Import Framer Motion
+import { motion } from 'framer-motion'; // 👈 Importer Framer Motion
 
 const Login = () => {
     const [formData, setFormData] = useState({ login: '', password: '' });
@@ -17,7 +17,7 @@ const Login = () => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     
-        // Clear that field's error when user types
+        // Effacer l'erreur de ce champ lorsque l'utilisateur tape
         if (error[name]) {
             setError((prevErrors) => {
                 const updatedErrors = { ...prevErrors };
@@ -32,11 +32,11 @@ const Login = () => {
         const errors = {};
 
         if (!formData.login.trim()) {
-            errors.login = 'Login est requis';
+            errors.login = 'Le login est requis';
         }
 
         if (!formData.password.trim()) {
-            errors.password = 'Mot de passe est requis';
+            errors.password = 'Le mot de passe est requis';
         }
 
         return errors;
@@ -49,8 +49,7 @@ const Login = () => {
             setError(errors);
             return;
         }
-        setError({}); // clear errors if valid
-
+        setError({}); // effacer les erreurs si valide
 
         try {
             const response = await login(formData);
@@ -69,7 +68,7 @@ const Login = () => {
             }
         } catch (error) {
             if (error.response?.status === 401) {
-                setError({ general: 'Identifiants invalides' }); // show invalid credentials
+                setError({ general: 'Identifiants invalides' }); // afficher les identifiants invalides
               } else {
                 setError({ general: 'Une erreur est survenue' });
               }
@@ -99,7 +98,7 @@ const Login = () => {
           >                        <div className="relative w-64 h-64 sm:w-[650px] sm:h-[650px]">
                             <img
                                 src={image}
-                                alt="Login"
+                                alt="Connexion"
                                 className="w-full h-full object-cover rounded-full"
                             />
                         </div>
@@ -107,12 +106,12 @@ const Login = () => {
 
                     <div className="md:w-1/2 max-w-md">
                         <div className="bg-white p-8 rounded-xl shadow-lg">
-                            <h1 className="text-3xl font-bold text-gray-800 mb-6">Welcome Back</h1>
+                            <h1 className="text-3xl font-bold text-gray-800 mb-6">Bienvenue</h1>
 
                             <form className="space-y-6" onSubmit={handleSubmit}>
                                 <div className="space-y-2">
                                     <label className="text-gray-600 font-medium flex items-center">
-                                        Email Address
+                                        Adresse Email
                                     </label>
                                     <input
                                         value={formData.login}
@@ -120,7 +119,7 @@ const Login = () => {
                                         onChange={handleChange}
                                         type="text"
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                        placeholder="your@email.com"
+                                        placeholder="votre@email.com"
                                         
                                     />
                                     {error.login && <p className="text-red-500 text-sm mt-2">{error.login}</p>}
@@ -128,7 +127,7 @@ const Login = () => {
 
                                 <div className="space-y-2 relative">
                                     <label className="text-gray-600 font-medium flex items-center">
-                                        Password
+                                        Mot de passe
                                     </label>
                                     <div className="relative">
                                         <input
@@ -160,7 +159,7 @@ const Login = () => {
                                     type="submit"
                                     className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center"
                                 >
-                                    Sign In
+                                    Se connecter
                                 </button>
                             </form>
                         </div>

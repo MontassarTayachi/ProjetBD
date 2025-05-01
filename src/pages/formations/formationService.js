@@ -38,14 +38,26 @@ getAllFormation: async () => {
     }
   } ,
 
-  updateFormation: async (id, fromationData) => {
+ /* updateFormation: async (id, fromationData) => {
     try {
       const response = await api.put(`/formation/${id}`, fromationData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
     }
-  },
+  },*/
+  updateFormation : async (id, formData) => {
+    try {
+        const response = await api.put(`/formation/update/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(`Failed to update formation: ${error.response?.data?.message || error.message}`);
+    }
+} ,
 
   deleteFormation: async (id) => {
     try {

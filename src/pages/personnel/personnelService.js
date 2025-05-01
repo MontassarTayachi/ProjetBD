@@ -71,12 +71,20 @@ getAllFormateurs: async () => {
 
   createFormateur: async (formateurData) => {
     try {
-      const response = await api.post('/formateur/add', formateurData);
+      // Extract credentials from formateurData
+      const { user_login, user_password, ...formateurBody } = formateurData;
+      
+      // Send credentials as query params and formateur data in request body
+      const response = await api.post(
+        `/formateur/add?userlogin=${user_login}&userpassword=${user_password}`,
+        formateurBody
+      );
+      
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to create user: ${error.message}`);
+      throw new Error(`Failed to create formateur: ${error.message}`);
     }
-  },
+  },  
 
   updateFormateur: async (id, formateurData) => {
     try {
