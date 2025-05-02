@@ -16,7 +16,7 @@ public class HistoriqueServiceImp implements HistoriqueService {
      }
     @Override
     public List<Historique> getAllHistoriques() {
-        return historiqueRepository.findAll();
+        return historiqueRepository.findAllHistorique();
     }
     @Override
     public Historique getHistoriqueById(Long id) {

@@ -32,6 +32,7 @@ public class JwtUtils {
                 .setSubject(user.getLogin())
                 .claim("name", user.getLogin())
                 .claim("role", user.getRole().getName())
+                .claim("image",user.getImage())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_IN_MS))
                 .signWith(key, SignatureAlgorithm.HS256)

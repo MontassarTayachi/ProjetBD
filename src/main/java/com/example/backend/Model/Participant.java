@@ -30,6 +30,7 @@ public class Participant {
 
     @ManyToOne
     @JoinColumn(name = "idProfil")
+    @JsonBackReference // Add this
     private Profil profil;
 
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL)

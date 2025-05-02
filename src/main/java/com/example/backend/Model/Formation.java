@@ -29,6 +29,7 @@ public class Formation {
     private  int nbHeuresRestantes;
     @ManyToOne
     @JoinColumn(name = "idDomaine")
+    @JsonBackReference // Add this
     private Domaine domaine;
 
     @ManyToOne(fetch = FetchType.EAGER)
