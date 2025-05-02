@@ -56,7 +56,7 @@ public class FormateurController {
         Utilisateur userInserted = userService.createUser(newuser);
         formateur.setUtilisateur(userInserted);
         String userLogin = jwtUtils.getUsernameFromRequest(request);
-       Formateur newFormateur = formateurService.createFormateur(formateur);
+        Formateur newFormateur = formateurService.createFormateur(formateur);
         historiqueService.createHistorique(
                 new Historique("Ajouté un formateur nommé : " + formateur.getNom(), LocalDateTime.now(), userLogin)
         );
@@ -75,27 +75,10 @@ public class FormateurController {
     public ResponseEntity<Void> deleteFormateur(HttpServletRequest request,@PathVariable Long id) {
         Formateur existingFormateur = formateurService.getFormateurById(id);
         formateurService.deleteFormateur(id);
-       String userLogin = jwtUtils.getUsernameFromRequest(request);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
         historiqueService.createHistorique(new Historique("Delete the formateur named  " + existingFormateur.getNom(), LocalDateTime.now(), userLogin));
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/take_attendance")
-    public ResponseEntity Take_Attendance(
-            HttpServletRequest request,
-            @RequestParam (required = true)  Long id_formation ,
-            @RequestParam(required = true) List<Long> ids_participants,
-            @RequestParam(required = true) int nb_heur
-            ){
-        Formation formation = formationService.getFormationById(id_formation);
-        if (formation.getNbHeuresRestantes()<nb_heur){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not enough hours available for this formation");
-        }
-        formationService.decremnter_nbHeuresRestantes(id_formation,nb_heur);
-        participationService.IncrnombreHeures(ids_participants,nb_heur);
-        String userLogin = jwtUtils.getUsernameFromRequest(request);
-        historiqueService.createHistorique(new Historique("Formateur take attendance for formation " + formation.getTitre() + " and add " + nb_heur + " hours to participants", LocalDateTime.now(), userLogin));
-        return ResponseEntity.ok("Attendance taken successfully");
 
-    }
 
 }

@@ -1,8 +1,15 @@
 package com.example.backend.Controller;
 
+import com.example.backend.Model.Formation;
+import com.example.backend.Model.Historique;
 import com.example.backend.Model.Participation;
+import com.example.backend.Security.JwtUtils;
+import com.example.backend.Service.FormationService;
+import com.example.backend.Service.HistoriqueService;
 import com.example.backend.Service.ParticipationService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +22,16 @@ import java.util.List;
 public class ParticipationController {
 
     private final ParticipationService participationService;
+    private final FormationService formationService;
+    @Autowired
+    JwtUtils jwtUtils;
+    @Autowired
+    private HistoriqueService historiqueService;
 
     @Autowired
-    public ParticipationController(ParticipationService participationService) {
+    public ParticipationController(ParticipationService participationService , FormationService formationService) {
         this.participationService = participationService;
+        this.formationService=formationService ;
     }
 
     @GetMapping("/{id}")
@@ -68,7 +81,6 @@ public class ParticipationController {
 
     @PostMapping
     public ResponseEntity<Participation> addParticipation(@RequestBody Participation participation) {
-        participation.setDate_inscription(LocalDateTime.now());
         Participation created = participationService.createParticipation(participation);
         return ResponseEntity.ok(created);
     }
@@ -77,5 +89,23 @@ public class ParticipationController {
     public ResponseEntity<Void> deleteParticipation(@PathVariable Long id) {
         participationService.deleteParticipation(id);
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/take_attendance")
+    public ResponseEntity Take_Attendance(
+            HttpServletRequest request,
+            @RequestParam (required = true)  Long id_formation ,
+            @RequestParam(required = true) List<Long> ids_participants,
+            @RequestParam(required = true) int nb_heur
+    ){
+        Formation formation = formationService.getFormationById(id_formation);
+        if (formation.getNbHeuresRestantes()<nb_heur){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not enough hours available for this formation");
+        }
+        formationService.decremnter_nbHeuresRestantes(id_formation,nb_heur);
+        participationService.IncrnombreHeures(id_formation,ids_participants,nb_heur);
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(new Historique("Formateur take attendance for formation " + formation.getTitre() + " and add " + nb_heur + " hours to participants", LocalDateTime.now(), userLogin));
+        return ResponseEntity.ok("Attendance taken successfully");
+
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -63,7 +64,6 @@ public class FormationController {
                 if (!uploadDir.exists()) {
                     uploadDir.mkdirs();
                 }
-
                 // Renommer l’image avec l’ID de la formation
                 String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
                 String fileName = newFormation.getId() + extension;
@@ -87,7 +87,6 @@ public class FormationController {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-
         String userLogin = jwtUtils.getUsernameFromRequest(request);
         historiqueService.createHistorique(
                 new Historique("Ajouté une formation nommée : " + newFormation.getTitre(), LocalDateTime.now(), userLogin)
@@ -112,5 +111,59 @@ public class FormationController {
         String userLogin = jwtUtils.getUsernameFromRequest(request);
         historiqueService.createHistorique(new Historique("Deleted the formation named " + existingFormation.getTitre(), LocalDateTime.now(), userLogin));
         return ResponseEntity.noContent().build();
+    }
+    @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Formation> updateFormation(
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @RequestPart("formation") String formationJson,
+            @RequestPart(value = "image", required = false) MultipartFile file
+    ) throws JsonProcessingException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Formation formationUpdates = objectMapper.readValue(formationJson, Formation.class);
+
+        Formation existingFormation = formationService.getFormationById(id);
+
+        // Handle image update
+        if (file != null && !file.isEmpty()) {
+            try {
+                // Delete old image if exists
+                if (existingFormation.getImageUrl() != null) {
+                    String oldFileName = existingFormation.getImageUrl().substring(existingFormation.getImageUrl().lastIndexOf('/') + 1);
+                    File oldFile = new File(UPLOAD_DIR + oldFileName);
+                    if (oldFile.exists()) {
+                        oldFile.delete();
+                    }
+                }
+
+                // Save new image
+                String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
+                String fileName = id + extension;
+                String fullPath = UPLOAD_DIR + fileName;
+
+                file.transferTo(new File(fullPath));
+
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                String fullImageUrl = baseUrl + "/uploads/" + fileName;
+                formationUpdates.setImageUrl(fullImageUrl);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            // Keep existing image if no new file is provided
+            formationUpdates.setImageUrl(existingFormation.getImageUrl());
+        }
+
+        Formation updatedFormation = formationService.updateFormation(id, formationUpdates);
+
+        String userLogin = jwtUtils.getUsernameFromRequest(request);
+        historiqueService.createHistorique(
+                new Historique("Modifié la formation: " + updatedFormation.getTitre(), LocalDateTime.now(), userLogin)
+        );
+
+        return new ResponseEntity<>(updatedFormation, HttpStatus.OK);
     }
 }

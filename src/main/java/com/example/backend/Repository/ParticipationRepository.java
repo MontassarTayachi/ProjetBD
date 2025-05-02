@@ -15,7 +15,10 @@ import java.util.Optional;
 public interface ParticipationRepository extends JpaRepository<Participation, Long> {
 
     List<Participation> findByParticipantId(Long participantId);
-
+    List<Participation> findByFormationIdAndParticipantIdIn(
+            @Param("formationId") Long formationId,
+            @Param("participantIds") List<Long> participantIds
+    );
     List<Participation> findByFormationId(Long formationId);
     @Query(value = "SELECT * FROM participation ORDER BY date_inscription DESC LIMIT :limit", nativeQuery = true)
     List<Participation> findRecentParticipations(@Param("limit") int limit);

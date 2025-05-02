@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.DTO.FormationCountDTO;
+import com.example.backend.Model.Participant;
 import com.example.backend.Service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -146,6 +147,16 @@ public class dashController {
         response.put("highDaily", highDailyStats);
 
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/participants")
+    public ResponseEntity getAllParticipants() {
+        try {
+            List<Participant> list = participantService.getAllParticipants();
+            return ResponseEntity.ok(list);
+        }catch (Exception e){
+            return ResponseEntity.ok(e.getMessage());
+        }
+
     }
 
 }

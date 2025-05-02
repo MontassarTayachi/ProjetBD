@@ -14,7 +14,7 @@ public interface ParticipationService {
     List<Participation> getParticipationsByParticipantId(Long participantId);
     List<Participation> getParticipationsByFormationId(Long formationId);
     List<Participation> getRecentParticipations(int limit);
-    void IncrnombreHeures(List<Long> ids,int value);
+    void IncrnombreHeures(Long formationId, List<Long> participantIds, int value);
     List<FormationCountDTO> countParticipationsByDomaine();
     List<Object[]> countParticipationsByMonth();
     List<Object[]> countParticipationsByWeekDay();

@@ -7,6 +7,7 @@ import com.example.backend.Repository.FormationRepository;
 import com.example.backend.Repository.ParticipantRepository;
 import com.example.backend.Repository.ParticipationRepository;
 import com.example.backend.Service.ParticipationService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,17 +27,31 @@ public class ParticipationServiceImp implements ParticipationService {
 
     @Override
     public Participation createParticipation(Participation participation) {
+
+        if (participation.getDate_inscription() == null){
+            participation.setDate_inscription(LocalDateTime.now());
+        }
         return participationRepository.save(participation);
     }
 
     @Override
-    public void IncrnombreHeures(List<Long> ids,int value){
-        for(int i=0;i<ids.size();i++){
-            Participation participation = getParticipationById(ids.get(i));
-            participation.setNombreHeures(participation.getNombreHeures()+value);
+    public void IncrnombreHeures(Long formationId, List<Long> participantIds, int value) {
+        // 1. Get all participations for this formation and participants
+        List<Participation> participations = participationRepository
+                .findByFormationIdAndParticipantIdIn(formationId, participantIds);
 
+        // 2. Validate we found all participants
+        if (participations.size() != participantIds.size()) {
+            throw new EntityNotFoundException("One or more participants not enrolled in this formation");
         }
 
+        // 3. Update hours
+        participations.forEach(participation -> {
+            participation.setNombreHeures(participation.getNombreHeures() + value);
+        });
+
+        // 4. Save all at once
+        participationRepository.saveAll(participations);
     }
 
     @Override
@@ -45,8 +60,8 @@ public class ParticipationServiceImp implements ParticipationService {
     }
     @Override
     public Participation getParticipationById(Long id) {
-       return participationRepository.findById(id).orElse(null);
-        }
+        return participationRepository.findById(id).orElse(null);
+    }
     @Override
     public List<Participation> getAllParticipations() {
         return participationRepository.findAll();

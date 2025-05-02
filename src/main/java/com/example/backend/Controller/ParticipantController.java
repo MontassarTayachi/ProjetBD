@@ -24,8 +24,14 @@ public class ParticipantController {
     @Autowired
     public ParticipantController (ParticipantService participantService){this.participantService=participantService;}
     @GetMapping("/getAll")
-    public ResponseEntity<List<Participant>> getAllParticipants() {
-        return ResponseEntity.ok(participantService.getAllParticipants());
+    public ResponseEntity getAllParticipants() {
+        try {
+            List<Participant> list = participantService.getAllParticipants();
+            return ResponseEntity.ok(list);
+        }catch (Exception e){
+            return ResponseEntity.ok(e.getMessage());
+        }
+
     }
 
     @GetMapping("/{id}")
@@ -59,7 +65,7 @@ public class ParticipantController {
         Participant existingParticipant = participantService.getParticipantById(id);
         participantService.deleteParticipant(id);
         String userLogin = jwtUtils.getUsernameFromRequest(request);
-        historiqueService.createHistorique(       
+        historiqueService.createHistorique(
                 new Historique("Deleted the participant named " + existingParticipant.getNom(), java.time.LocalDateTime.now(), userLogin)
         );
         return ResponseEntity.noContent().build();
