@@ -244,7 +244,7 @@ export default function Formations() {
             <div className="bg-white rounded-lg shadow-xl transform transition-all sm:max-w-lg w-full p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-[#7a6699]">
-                  {currentFormation ? "Edit Formation" : "Add New Formation"}
+                  {currentFormation ? "Mise à jour de Formation" : "Ajouter une Formation"}
                 </h2>
                 <button
                   onClick={() => {
@@ -261,7 +261,7 @@ export default function Formations() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Title<span class="text-red-500">*</span>
+                      Titre<span class="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -441,7 +441,7 @@ export default function Formations() {
                     type="submit"
                     className="px-4 py-2 text-white bg-[#7a6699] rounded-md hover:bg-[#947ebc]"
                   >
-                    {currentFormation ? "Update" : "Create"}
+                    {currentFormation ? "Mettre à jour" : "Créer"}
                   </button>
                 </div>
               </form>

@@ -393,8 +393,8 @@ const Referentiels = () => {
             <div className="p-6">
               <h2 className="text-2xl font-bold text-[#7a6699] mb-4">
                 {currentItem
-                  ? `Edit ${getActiveTitle().slice(0, -1)}`
-                  : `Add New ${getActiveTitle().slice(0, -1)}`}
+                  ? `Mise à jour ${getActiveTitle().slice(0, -1)}`
+                  : `Ajouter  ${getActiveTitle().slice(0, -1)}`}
               </h2>
 
               <form onSubmit={handleSubmit}>
@@ -437,7 +437,7 @@ const Referentiels = () => {
                     type="submit"
                     className="px-4 py-2 bg-[#947ebc] hover:bg-[#7a6699] text-white rounded-lg transition-colors"
                   >
-                    {currentItem ? "Update" : "Create"}
+                    {currentItem ? "Mettre à jour" : "Créer"}
                   </button>
                 </div>
               </form>

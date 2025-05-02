@@ -11,7 +11,7 @@ import {
   Link,
 } from "@mui/material";
 import { ArrowRight } from "@mui/icons-material";
-import { personnelService } from "../personnel/personnelService";
+import { dashService } from "../dashboard/dashService"; // Adjust the import path as needed
 
 const RecentParticipants = () => {
   const [recentParticipants, setRecentParticipants] = useState([]);
@@ -20,7 +20,7 @@ const RecentParticipants = () => {
   useEffect(() => {
     const fetchRecentParticipants = async () => {
       try {
-        const participants = await personnelService.getAllParticipants();
+        const participants = await dashService.getAllParticipants();
         // Sort by most recent first
         const sortedParticipants = participants.sort(
           (a, b) =>

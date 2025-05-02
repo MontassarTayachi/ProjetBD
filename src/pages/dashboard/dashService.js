@@ -28,5 +28,13 @@ export const dashService = {
     } catch (error) {
       throw new Error(`Failed to fetch users: ${error.message}`);
     }
-  }
+  },
+  getAllParticipants: async () => {
+      try {
+        const response = await api.get('/dash/participants');
+        return response.data;
+      } catch (error) {
+        throw new Error(`Failed to fetch users: ${error.message}`);
+      }
+    },
 };
