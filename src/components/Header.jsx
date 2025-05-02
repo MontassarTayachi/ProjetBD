@@ -15,6 +15,7 @@ export default function Header({ title = "Dashboard", subtitle = "Overview", cou
     if (!loading) {
       setUsername(user?.sub);
     }
+   
   }, [loading, user]);
 
   return (
@@ -27,9 +28,15 @@ export default function Header({ title = "Dashboard", subtitle = "Overview", cou
     </button>
 
     <div className="flex items-center space-x-2">
+      {user.image ? 
+      <img
+        src={user.image}
+        alt="User Avatar"
+        className="w-8 h-8 rounded-full"
+      /> :
       <div className="w-8 h-8 rounded-full bg-[#d8d4af] flex items-center justify-center text-white font-medium">
         {username ? username.charAt(0).toUpperCase() : ''}
-      </div>
+      </div>}
     </div>
   </div>
   {!hideHeader && (

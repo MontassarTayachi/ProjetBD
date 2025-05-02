@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Plus,
   Edit2,
   Trash2,
   X,
@@ -12,11 +11,9 @@ import { personnelService } from "./personnelService";
 import { formationService } from "../formations/formationService";
 import Box from "@mui/material/Box";
 import ConfirmationModal from "../../components/ConfirmationModal";
-import FormationsPopUp from "./FormationPopup";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useOutletContext } from "react-router-dom";
 import ActionsDropdown from "../../components/ActionsDropdown";
-import FormationsPopup from "./FormationPopup";
 import FormationPopup from "./FormationPopup";
 import { useToast } from "../../contexts/ToastContext";
 import { refService } from "../Referentiels/refService";
@@ -747,6 +744,26 @@ const validateForm = () => {
           formations={formations}
           participantId={selectedParticipantId} // <-- make sure you pass it!
           onClose={() => {
+            setShowFormationsPopUp(false);
+            setSelectedParticipantId(null);
+          }}
+          onSuccess={() => {
+            addToast({
+              type: "success",
+              title: "Succès",
+              message: "Formations ajoutées avec succès",
+            });
+            fetchData();
+            setShowFormationsPopUp(false);
+            setSelectedParticipantId(null);
+            
+          }}
+          onError={(error) => {
+            addToast({
+              type: "error",
+              title: "Erreur",
+              message: `Échec de l'ajout des formations : ${error.message}`,
+            });
             setShowFormationsPopUp(false);
             setSelectedParticipantId(null);
           }}

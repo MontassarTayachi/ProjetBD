@@ -20,16 +20,8 @@ const RecentParticipants = () => {
   useEffect(() => {
     const fetchRecentParticipants = async () => {
       try {
-        const participants = await dashService.getAllParticipants();
-        // Sort by most recent first
-        const sortedParticipants = participants.sort(
-          (a, b) =>
-            new Date(b.createdAt || b.dateJoined) -
-            new Date(a.createdAt || a.dateJoined)
-        ); // Fixed: Added missing parenthesis
-
-        // Take only the first 6 most recent
-        setRecentParticipants(sortedParticipants.slice(0, 6));
+        const participants = await dashService.getRecentrParticipations();
+        setRecentParticipants(participants.slice(0, 6));
       } catch (error) {
         console.error("Error fetching recent participants:", error);
       } finally {
@@ -126,7 +118,7 @@ const RecentParticipants = () => {
             letterSpacing: "0.5px",
           }}
         >
-          Recent Participants
+          Recent Participations
         </Typography>
         <Link
           href="#"
@@ -170,7 +162,7 @@ const RecentParticipants = () => {
                     fontFamily: "'Inter', sans-serif",
                   }}
                 >
-                  {getInitials(participant.name || participant.email)}
+                  {getInitials(participant.participant.nom + " " + participant.participant.prenom)}
                 </Avatar>
               </ListItemAvatar>
               <ListItemText
@@ -184,7 +176,7 @@ const RecentParticipants = () => {
                       mb: 0.5,
                     }}
                   >
-                    {participant.name || participant.email.split("@")[0]}
+                    {participant.participant.nom + " " + participant.participant.prenom}
                   </Typography>
                 }
                 secondary={
@@ -196,7 +188,7 @@ const RecentParticipants = () => {
                       fontWeight: 400,
                     }}
                   >
-                    {participant.email}
+                    { participant.formation.titre.split(" ").slice(0, 3).join(" ") }
                   </Typography>
                 }
               />
@@ -215,9 +207,7 @@ const RecentParticipants = () => {
                 }}
               >
                 {formatDate(
-                  participant.participations[0]?.date_inscription ||
-                    participant.createdAt ||
-                    participant.dateJoined
+                  participant.date_inscription 
                 )}{" "}
               </Box>
             </ListItem>

@@ -37,4 +37,11 @@ export const dashService = {
         throw new Error(`Failed to fetch users: ${error.message}`);
       }
     },
+   getRecentrParticipations:async () => {
+    try {
+      const response = await api.get('/participations?recentParticipations=true&limit=10');
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch users: ${error.message}`);
+    } }
 };

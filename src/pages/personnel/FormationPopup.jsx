@@ -1,9 +1,24 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { personnelService } from "./personnelService";
 
-export default function FormationPopup({ formations, onClose , participantId }) {
+export default function FormationPopup({ formations, onClose , participantId,onSuccess,onError }) {
   const [selectedIds, setSelectedIds] = useState([]);
+  const [participantFormations, setParticipantFormations] = useState([]);
+  useEffect(() => {
+      const fetchParticipantFormations = async () => {
+        try {
+          const user = await personnelService.getParticipantById(participantId);
 
+          const formationIds = user.participations.map(ff => ff.formation.id);
+           setParticipantFormations(formationIds);
+          console.log("Participant Formations:", formationIds);
+        } catch (error) {
+          console.error("Error fetching participant formations:", error);
+        }
+      };
+      fetchParticipantFormations();
+    }, [participantId]);
+  
   const handleCheckboxChange = (id) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(fId => fId !== id) : [...prev, id]
@@ -25,9 +40,10 @@ export default function FormationPopup({ formations, onClose , participantId }) 
       });
   
       await Promise.all(requests);
-      onClose();
+     onSuccess();
     } catch (error) {
       console.error("Error creating participations:", error.message);
+      onError(); // Pass the error message to the parent component
       // You could optionally show a user-friendly message here
     }
   };
@@ -59,7 +75,8 @@ export default function FormationPopup({ formations, onClose , participantId }) 
               >
                 <input
                   type="checkbox"
-                  checked={selectedIds.includes(formation.id)}
+                  checked={selectedIds.includes(formation.id) || participantFormations.includes(formation.id)}  
+                  disabled={participantFormations.includes(formation.id)}
                   onChange={() => handleCheckboxChange(formation.id)}
                   className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
