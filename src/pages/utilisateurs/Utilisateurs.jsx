@@ -419,7 +419,7 @@ const Utilisateurs = () => {
             ></div>
             <div class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
               <div className=" mb-4  text-2xl montserrat-700 text-center montserrat-extra text-[#1d2736] ">
-                {currentUser ? "Edit User" : "Add New User"}
+                {currentUser ? "Mettre à jour Utilisateur" : "Ajouter utilisateur"}
               </div>
 
               <form onSubmit={handleSubmit}>
@@ -545,13 +545,13 @@ const Utilisateurs = () => {
                     }}
                     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   >
-                    Cancel
+                    Annuler
                   </button>
                   <button
                     type="submit"
                     className="px-4 py-2 bg-[#947ebc] hover:bg-[#7a6699] text-white rounded-lg transition-colors"
                   >
-                    {currentUser ? "Update" : "Create"}
+                    {currentUser ? "Mettre à jour" : "Créer"}
                   </button>
                   {backendError && (
                     <div className="text-red-500 text-sm text-center mb-4">

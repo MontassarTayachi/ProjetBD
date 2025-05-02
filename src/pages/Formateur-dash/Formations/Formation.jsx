@@ -108,7 +108,7 @@ const Formation = () => {
           <button
         onClick={() => handleView(params.row.id)} // Navigate to the new route
         className="text-[#9ca3af] hover:text-indigo-900 mr-3"
-          >  View
+          >  voir
           </button>
           
         </div>

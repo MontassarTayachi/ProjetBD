@@ -8,7 +8,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import { useToast } from "../../contexts/ToastContext";
 
 export default function Formations() {
-    const { addToast } = useToast();
+  const { addToast } = useToast();
   const [formations, setFormations] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
