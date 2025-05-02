@@ -17,5 +17,7 @@ public class Profil {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String libelle;
-}
+private String libelle;
+    @OneToMany(mappedBy = "profil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // Add this
+    private List<Participant> participants;}
