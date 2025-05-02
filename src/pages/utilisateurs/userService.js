@@ -1,0 +1,130 @@
+import axios from 'axios';
+
+import api from '../../api/axios'; // Import the axios instance with interceptors
+
+
+export const userService = {
+  createUser: async (formData) => {
+    try {
+      const response = await api.post('/user/add', formData ,{
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
+  } ,
+
+  // User CRUD operations
+ /* createUser: async (formData) => {
+    try {
+      const response = await api.post('/user/add', formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error; // Just rethrow original error object
+    }
+  } ,*/
+  
+  getAllUsers: async () => {
+    try {
+      const response = await api.get('/user');
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch users: ${error.message}`);
+    }
+  },
+
+  getUserById: async (id) => {
+    try {
+      const response = await api.get(`/${id}`);
+      return response.data;
+    
+    } catch (error) {
+      throw new Error(`Failed to fetch user: ${error.message}`);
+    }
+  },
+
+ 
+
+  // In userService.js
+/*updateUser: async (id, userData) => {
+  try {
+    const formData = new FormData();
+    
+    // Create user object
+    const userObject = {
+      login: userData.login,
+      password: userData.password || "", // Send empty string if no password
+      role: {
+        id: userData.roleId
+      }
+    };
+
+    // Append as JSON string
+    formData.append("user", JSON.stringify(userObject));
+
+    // Append image if exists
+    if (userData.image) {
+      formData.append("image", userData.image);
+    }
+
+    const response = await api.put(`/user/update/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(`Failed to update user: ${error.message}`);
+  }
+},*/
+updateUser : async (id, formData) => {
+  try {
+      const response = await api.put(`/user/update/${id}`, formData, {
+          headers: {
+              'Content-Type': 'multipart/form-data'
+          }
+      });
+      return response.data;
+  } catch (error) {
+      throw new Error(`Failed to update user: ${error.response?.data?.message || error.message}`);
+  }
+} ,
+
+  deleteUser: async (id) => {
+    try {
+      await api.delete(`/user/${id}`);
+    } catch (error) {
+      throw new Error(`Failed to delete user: ${error.message}`);
+    }
+  },
+   // Role operations
+   getAllRoles: async () => {
+    try {
+      const response = await api.get('/user/allRole'); // Assuming you have this endpoint
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch roles: ${error.message}`);
+    }
+  },
+
+  createRole: async (roleData) => {
+    try {
+      const response = await api.post('/user/addRole', roleData);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to create role: ${error.message}`);
+    }
+  }
+
+
+ 
+};

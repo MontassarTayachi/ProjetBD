@@ -1,0 +1,969 @@
+import React, { useEffect, useState } from "react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+  Briefcase,
+  UserCheck,
+  Users,
+} from "lucide-react";
+import { personnelService } from "./personnelService";
+import { formationService } from "../formations/formationService";
+import Box from "@mui/material/Box";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import FormationsPopUp from "./FormationPopup";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { useOutletContext } from "react-router-dom";
+import ActionsDropdown from "../../components/ActionsDropdown";
+import FormationsPopup from "./FormationPopup";
+import FormationPopup from "./FormationPopup";
+import { useToast } from "../../contexts/ToastContext";
+import { refService } from "../Referentiels/refService";
+
+export default function Personnel() {
+  const { addToast } = useToast();
+  const [activeTab, setActiveTab] = useState("employeurs");
+  const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentItem, setCurrentItem] = useState(null);
+
+  // Data states
+  const [employeurs, setEmployeurs] = useState([]);
+  const [profils, setProfils] = useState([]);
+  const [formateurs, setFormateurs] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [showFormationsPopUp, setShowFormationsPopUp] = useState(false);
+  const [selectedFormationId, setSelectedFormationId] = useState(null);
+  const [formations, setFormations] = useState([]);
+
+  // Form states
+  const [formData, setFormData] = useState({
+    // Common fields
+    nom: "",
+    prenom: "",
+    email: "",
+    tel: "",
+    // Participant specific
+    formations: [],
+    profil: {id :""},
+    // Formateur specific
+    type: "Indépendant",
+    employeur: { id: "" },
+    user_login: "",
+    user_password: "",
+    // Employeur specific
+    nomemployeur: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [selectedParticipantId, setSelectedParticipantId] = useState(null); // <--- new
+  useEffect(() => {
+    fetchData();
+    console.log(employeurs);
+    console.log(formateurs);
+    console.log(participants);
+  }, [activeTab]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      switch (activeTab) {
+        case "employeurs":
+          const employeursData = await personnelService.getAllEmployeurs();
+          setEmployeurs(employeursData);
+          break;
+        case "formateurs":
+          const formateursData = await personnelService.getAllFormateurs();
+          setFormateurs(formateursData);
+          // Load employeurs for formateur's employer dropdown
+          const empData = await personnelService.getAllEmployeurs();
+          setEmployeurs(empData);
+          break;
+        case "participants":
+          const participantsData = await personnelService.getAllParticipants();
+          const formationdata = await formationService.getAllFormation(); // Create this in your service
+          const profilsData = await refService.getAllProfil();
+          setFormations(formationdata);
+          setParticipants(participantsData);
+          setProfils(profilsData);
+          break;
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  //--------------------------------------
+  const { setCountLabel } = useOutletContext();
+
+  useEffect(() => {
+    let count = 0;
+    let title = "";
+
+    if (activeTab === "employeurs") {
+      count = employeurs.length;
+      title = "Employeurs";
+    } else if (activeTab === "formateurs") {
+      count = formateurs.length;
+      title = "Formateurs";
+    } else if (activeTab === "participants") {
+      count = participants.length;
+      title = "Participants";
+    }
+
+    setCountLabel(`${count} ${title} trouvés`);
+  }, [activeTab, employeurs, formateurs, participants, setCountLabel]);
+  const { setHeaderAddHandler } = useOutletContext();
+  useEffect(() => {
+    // Pass the custom button click function to the header
+    setHeaderAddHandler(() => () => setShowModal(true));
+  }, [setHeaderAddHandler]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: null
+      });
+    }
+  };
+
+  const handleSelectChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: { id: parseInt(value) },
+    });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      nom: "",
+      prenom: "",
+      email: "",
+      tel: "",
+      formations: [],
+      profil: { id: "" },
+      type: "Indépendant",
+      user_login: "",
+      user_password: "",
+      employeur: { id: "" },
+      nomemployeur: "",
+    });
+    setCurrentItem(null);
+    setErrors({});
+  };
+
+  //-------Form Validation ----
+const validateForm = () => {
+  const newErrors = {};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/; // French phone format
+
+  // Common validations for all types except employeurs
+  if (activeTab !== "employeurs") {
+    if (!formData.nom.trim()) {
+      newErrors.nom = "Le nom est requis";
+    } else if (formData.nom.length > 50) {
+      newErrors.nom = "Le nom ne doit pas dépasser 50 caractères";
+    }
+
+    if (!formData.prenom.trim()) {
+      newErrors.prenom = "Le prénom est requis";
+    } else if (formData.prenom.length > 50) {
+      newErrors.prenom = "Le prénom ne doit pas dépasser 50 caractères";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "L'email est requis";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Format d'email invalide";
+    }
+
+    if (!formData.tel) {
+      newErrors.tel = "Le téléphone est requis";
+    } 
+  }
+
+  // Tab-specific validations
+  switch (activeTab) {
+    case "employeurs":
+      if (!formData.nomemployeur.trim()) {
+        newErrors.nomemployeur = "Le nom de l'employeur est requis";
+      } else if (formData.nomemployeur.length > 100) {
+        newErrors.nomemployeur = "Le nom ne doit pas dépasser 100 caractères";
+      }
+      break;
+
+    case "formateurs":
+      if (!currentItem) {
+        if (!formData.user_login.trim()) {
+          newErrors.user_login = "Le login est requis";
+        }
+        if (!formData.user_password.trim()) {
+          newErrors.user_password = "Le mot de passe est requis";
+        } else if (formData.user_password.length < 6) {
+          newErrors.user_password = "Minimum 6 caractères requis";
+        }
+      }
+      if (!formData.employeur.id) {
+        newErrors.employeur = "L'employeur est requis";
+      }
+      if (!formData.type) {
+        newErrors.type = "Le type est requis";
+      }
+      break;
+
+    case "participants":
+     
+      if (!formData.profil.id) {
+        newErrors.profil = "Le profil est requis";
+      }
+      break;
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    console.log(formData);
+    try {
+      let response;
+       // Determine action type first
+    const isUpdate = !!currentItem;
+    const actionType = isUpdate ? 'updated' : 'created';
+      if (isUpdate) {
+        // Update existing
+        switch (activeTab) {
+          case "employeurs":
+            response = await personnelService.updateEmployeur(
+              currentItem.id,
+              formData
+            );
+            break;
+          case "formateurs":
+            response = await personnelService.updateFormateur(
+              currentItem.id,
+              formData
+            );
+            break;
+          case "participants":
+            response = await personnelService.updateParticipant(
+              currentItem.id,
+              formData
+            );
+            console.log(formData);
+            break;
+        }
+      } else {
+        // Create new
+        console.log(formData);
+        switch (activeTab) {
+          case "employeurs":
+            response = await personnelService.createEmployeur(formData);
+            break;
+          case "formateurs":
+            response = await personnelService.createFormateur(formData);
+            break;
+          case "participants":
+            response = await personnelService.createParticipant(formData);
+            break;
+        }
+      }
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `${getTranslatedType()} ${isUpdate ? 'mis à jour' : 'créé'} avec succès`
+      });
+      setShowModal(false);
+      fetchData();
+      resetForm();
+    } catch (error) {
+      addToast({
+        type: "error",
+        title: "Erreur",
+        message: `Échec de ${
+          currentItem ? "mise à jour" : "création"
+        } ${getTranslatedType()}`,
+      });
+      setError(error.message);
+    }
+  };
+  // Add this helper function
+  const getTranslatedType = () => {
+    switch (activeTab) {
+      case "employeurs":
+        return "Employeur";
+      case "formateurs":
+        return "Formateur";
+      case "participants":
+        return "Participant";
+      default:
+        return "";
+    }
+  };
+  const handleEdit = (item) => {
+    setCurrentItem(item);
+    setFormData({
+      nom: item.nom || "",
+      prenom: item.prenom || "",
+      email: item.email || "",
+      tel: item.tel || "",
+      profil: item.profil || { id: "" },
+      type: item.type || "Indépendant",
+      employeur: item.employeur || { id: "" },
+      nomemployeur: item.nomemployeur || "",
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      switch (activeTab) {
+        case "employeurs":
+          await personnelService.deleteEmployeur(deleteId);
+          break;
+        case "formateurs":
+          await personnelService.deleteFormateur(deleteId);
+          break;
+        case "participants":
+          await personnelService.deleteParticipant(deleteId);
+          break;
+      }
+      addToast({
+        type: "success",
+        title: "Succès",
+        message: `${getTranslatedType()} supprimé avec succès`,
+      });
+      fetchData();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setShowDeleteModal(false);
+    }
+  };
+
+  const renderFormFields = () => {
+    switch (activeTab) {
+      case "employeurs":
+        return (
+          <div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Nom de l'employeur
+                <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="nomemployeur"
+                value={formData?.nomemployeur}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full rounded-md border ${
+                  errors.nomemployeur ? "border-red-500" : "border-gray-300"
+                } shadow-sm p-2`}
+              />
+              {errors.nomemployeur && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.nomemployeur}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      case "formateurs":
+        return (
+          <div>
+            {/* Add login/password fields only for creation */}
+            {!currentItem && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Login <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="user_login"
+                    value={formData.user_login}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md border ${
+                      errors.user_login ? "border-red-500" : "border-gray-300"
+                    } shadow-sm p-2`}
+                  />
+                  {errors.user_login && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.user_login}
+                    </p>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    name="user_password"
+                    value={formData.user_password}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md border ${
+                      errors.user_password
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } shadow-sm p-2`}
+                  />
+                  {errors.user_password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.user_password}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Type
+                <span class="text-red-500">*</span>
+              </label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full rounded-md border ${
+                  errors.type ? "border-red-500" : "border-gray-300"
+                } shadow-sm p-2`}
+              >
+                <option value="Indépendant">Indépendant</option>
+                <option value="Salarié">Salarié</option>
+              </select>
+              {errors.type && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.type}
+                    </p>
+                  )}
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Employeur
+                <span class="text-red-500">*</span>
+              </label>
+              <select
+                name="employeur"
+                value={formData.employeur.id}
+                onChange={handleSelectChange}
+                className={`mt-1 block w-full rounded-md border ${
+                  errors.employeur ? "border-red-500" : "border-gray-300"
+                } shadow-sm p-2`}
+              >              
+                <option value="">Select Employer</option>
+                {employeurs.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.nomemployeur}
+                  </option>
+                ))}
+              </select>
+              {errors.employeur && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.employeur}
+                    </p>
+                  )}
+            </div>
+          </div>
+        );
+
+      case "participants": 
+       return (
+<div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Profil
+                <span class="text-red-500">*</span>
+              </label>
+              <select
+                name="profil"
+                value={formData.profil.id}
+                onChange={handleSelectChange}
+                className={`mt-1 block w-full rounded-md border ${
+                  errors.profil ? "border-red-500" : "border-gray-300"
+                } shadow-sm p-2`}
+              >              
+                <option value="">Select Profil</option>
+                {profils.map((pro) => (
+                  <option key={pro.id} value={pro.id}>
+                    {pro.libelle}
+                  </option>
+                ))}
+              </select>
+              {errors.profil && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.profil}
+                    </p>
+                  )}
+            </div>
+       );
+       
+      default:
+      return null;
+    }
+  };
+
+  const columnsformateurs = [
+    {
+      field: "id",
+      headerName: "ID",
+      headerClassName: "super-app-theme--header",
+      width: 90,
+    },
+    {
+      field: "prenom",
+      headerName: "First name",
+      width: 120,
+      editable: true,
+      headerClassName: "super-app-theme--header",
+    },
+    {
+      field: "nom",
+      headerName: "Last name",
+      width: 120,
+      editable: true,
+      headerClassName: "super-app-theme--header",
+    },
+    {
+      field: "email",
+      headerName: "Email",
+      headerClassName: "super-app-theme--header",
+      width: 200,
+    },
+    {
+      field: "tel",
+      headerName: "Phone",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+    },
+    {
+      field: "type",
+      headerName: "Type",
+      width: 150,
+      headerClassName: "super-app-theme--header",
+    },
+    {
+      field: "employeur",
+      headerName: "nomemployeur",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+      renderCell: (params) =>
+        params.row.employeur ? params.row.employeur.nomemployeur : "N/A",
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 150,
+      headerClassName: "super-app-theme--header",
+      renderCell: (params) => (
+        <div className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <button
+            onClick={() => handleEdit(params.row)}
+            className="text-indigo-600 hover:text-indigo-900 mr-3"
+          >
+            <Edit2 className="w-4 h-4 inline" />
+          </button>
+          <button
+            onClick={() => handleDeleteClick(params.row.id)}
+            className="text-red-600 hover:text-red-900"
+          >
+            <Trash2 className="w-4 h-4 inline" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+  const columnsemployeurs = [
+    {
+      field: "id",
+      headerName: "ID",
+      width: 90,
+      headerClassName: "super-app-theme--header",
+    },
+    {
+      field: "nomemployeur",
+      headerName: "Employer Name",
+      width: 250,
+      headerClassName: "super-app-theme--header",
+      editable: true,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+      renderCell: (params) => (
+        <div className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <button
+            onClick={() => handleEdit(params.row)}
+            className="text-indigo-600 hover:text-indigo-900 mr-3"
+          >
+            <Edit2 className="w-4 h-4 inline" />
+          </button>
+          <button
+            onClick={() => handleDeleteClick(params.row.id)}
+            className="text-red-600 hover:text-red-900"
+          >
+            <Trash2 className="w-4 h-4 inline" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+  const columnsparticipants = [
+    {
+      field: "id",
+      headerName: "ID",
+      width: 90,
+      headerClassName: "super-app-theme--header",
+    },
+    {
+      field: "nom",
+      headerName: "First name",
+      headerClassName: "super-app-theme--header",
+      width: 120,
+      editable: true,
+    },
+    {
+      field: "prenom",
+      headerName: "Last name",
+      headerClassName: "super-app-theme--header",
+      width: 120,
+      editable: true,
+    },
+    {
+      field: "email",
+      headerName: "Email",
+      headerClassName: "super-app-theme--header",
+      width: 200,
+    },
+    {
+      field: "tel",
+      headerName: "Phone",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+      renderCell: (params) => (
+        <ActionsDropdown
+          onEdit={() => handleEdit(params.row)}
+          onDelete={() => handleDeleteClick(params.row.id)}
+          onAddFormations={() => {
+            setShowFormationsPopUp(true);
+            setSelectedParticipantId(params.row.id); // <--- save which participant was clicked
+          }}
+        />
+      ),
+    },
+    /*{
+      field: "formations",
+      headerName: "Formations",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+      renderCell: (params) => (
+        <div className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <button
+            onClick={() => handleEdit(params.row)}
+            className="text-indigo-600 hover:text-indigo-900 mr-3"
+          >
+            <Edit2 className="w-4 h-4 inline" />
+          </button>
+          <button
+            onClick={() => handleDeleteClick(params.row.id)}
+            className="text-red-600 hover:text-red-900"
+          >
+            <Trash2 className="w-4 h-4 inline" />
+          </button>
+        </div>
+      ),
+    },*/
+  ];
+
+  return (
+    <div className="flex-1 px-8 py-4 bg-white rounded-[20px] shadow-md overflow-hidden">
+      {/* Loading state */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <p>Loading...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+          <span className="block sm:inline">{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="absolute top-0 right-0 px-2 py-1"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <ConfirmationModal
+          message={activeTab.slice(0, -1)} // Remove 's' from end
+          itemId={deleteId}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
+      {/* Formations Modal */}
+      {showFormationsPopUp && selectedParticipantId && (
+        <FormationPopup
+          formations={formations}
+          participantId={selectedParticipantId} // <-- make sure you pass it!
+          onClose={() => {
+            setShowFormationsPopUp(false);
+            setSelectedParticipantId(null);
+          }}
+        />
+      )}
+
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              aria-hidden="true"
+            ></div>
+            <div className="bg-white rounded-lg shadow-xl transform transition-all sm:max-w-lg w-full p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-[#7a6699]">
+                  {currentItem
+                    ? `Mise à jour ${activeTab.slice(0, -1)}`
+                    : `Ajouter ${activeTab.slice(0, -1)}`}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4">
+                  {activeTab !== "employeurs" && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Prénom
+                            <span class="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="prenom"
+                            value={formData.prenom}
+                            onChange={handleInputChange}
+                            className={`mt-1 block w-full rounded-md border ${
+                              errors.prenom ? "border-red-500" : "border-gray-300"
+                            } shadow-sm p-2`}
+                          />
+                          {errors.prenom && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.prenom}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Nom
+                            <span class="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="nom"
+                            value={formData.nom}
+                            onChange={handleInputChange}
+                            className={`mt-1 block w-full rounded-md border ${
+                              errors.nom ? "border-red-500" : "border-gray-300"
+                            } shadow-sm p-2`}
+                          />
+                          {errors.nom && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.nom}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Email
+                          <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className={`mt-1 block w-full rounded-md border ${
+                            errors.email ? "border-red-500" : "border-gray-300"
+                          } shadow-sm p-2`}
+                        />
+                        {errors.email && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.email}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Téléphone
+                          <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          name="tel"
+                          value={formData.tel}
+                          onChange={handleInputChange}
+                          className={`mt-1 block w-full rounded-md border ${
+                            errors.tel ? "border-red-500" : "border-gray-300"
+                          } shadow-sm p-2`}
+                        />  
+                         {errors.tel && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.tel}
+                          </p>
+                        )}                      
+                      </div>
+                    </>
+                  )}
+
+                  {renderFormFields()}
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      resetForm();
+                    }}
+                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-white bg-[#7a6699] rounded-md hover:bg-[#947ebc]"
+                  >
+                    {currentItem ? "Mettre à jour" : "Créer"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="mb-6 border-b border-gray-200 mt-0">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab("employeurs")}
+            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+              activeTab === "employeurs"
+                ? "border-[#947ebc] text-[#7a6699]"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <Briefcase className="w-4 h-4 mr-2" />
+            Employeurs
+          </button>
+          <button
+            onClick={() => setActiveTab("formateurs")}
+            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+              activeTab === "formateurs"
+                ? "border-[#947ebc] text-[#7a6699]"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <UserCheck className="w-4 h-4 mr-2" />
+            Formateurs
+          </button>
+          <button
+            onClick={() => setActiveTab("participants")}
+            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+              activeTab === "participants"
+                ? "border-[#947ebc] text-[#7a6699]"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Participants
+          </button>
+        </nav>
+      </div>
+
+      {/* Content */}
+      <Box sx={{ height: 500, width: "100%" }}>
+        <DataGrid
+          rows={
+            activeTab === "employeurs"
+              ? employeurs
+              : activeTab === "formateurs"
+              ? formateurs
+              : participants
+          }
+          columns={
+            activeTab === "employeurs"
+              ? columnsemployeurs
+              : activeTab === "formateurs"
+              ? columnsformateurs
+              : columnsparticipants
+          }
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 6,
+              },
+            },
+          }}
+          slots={{ toolbar: GridToolbar }}
+          pageSizeOptions={[5]}
+          checkboxSelection
+          disableRowSelectionOnClick
+        />
+      </Box>
+    </div>
+  );
+}
